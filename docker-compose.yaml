@@ -1,0 +1,22 @@
+version: '3'
+services:
+  pingo-postgres:
+    image: postgres:16-alpine
+    volumes:
+      - postgres:/data/postgres
+    environment:
+      POSTGRES_DB: pingo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: '123456789'
+      PGDATA: /data/postgres
+    ports:
+      - '5432:5432'
+    networks:
+      - pingo_internal
+
+networks:
+  pingo_internal:
+    name: pingo_internal
+
+volumes:
+  postgres:

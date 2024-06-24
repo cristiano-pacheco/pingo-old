@@ -15,6 +15,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/handlers"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/router"
 	_ "github.com/lib/pq"
 )
 
@@ -71,6 +73,8 @@ func main() {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
+	// #########################################################################
+	// Connect to the database
 	db, err := openDB(cfg)
 	if err != nil {
 		logger.Error(err.Error())
@@ -80,8 +84,11 @@ func main() {
 
 	logger.Info("database connection pool established")
 
-	router := router.CreateRouter(handlers, logger)
-
+	// #########################################################################
+	handlers := handlers.New()
+	router := router.New(handlers, logger)
+	// #########################################################################
+	// Start the webserver
 	err = startWebServer(router, &cfg, logger)
 	if err != nil {
 		logger.Error(err.Error())
