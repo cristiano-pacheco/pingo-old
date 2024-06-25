@@ -115,8 +115,10 @@ func main() {
 		os.Exit(1)
 	}
 	m, err := migrate.NewWithDatabaseInstance(
-		"file:///internal/infra/database/migrations",
-		"postgres", driver)
+		"file://migrations",
+		"postgres",
+		driver,
+	)
 
 	if err != nil {
 		logger.Error(err.Error())
