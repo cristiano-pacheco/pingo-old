@@ -114,12 +114,7 @@ func main() {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
-	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations",
-		"postgres",
-		driver,
-	)
-
+	m, err := migrate.NewWithDatabaseInstance("file://migrations", "postgres", driver)
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
