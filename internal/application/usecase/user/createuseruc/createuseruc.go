@@ -11,7 +11,7 @@ type UseCase struct {
 	mapper   *Mapper
 }
 
-func NewUseCase(userRepo userrepo.UserRepository, mapper *Mapper) *UseCase {
+func New(userRepo userrepo.UserRepository, mapper *Mapper) *UseCase {
 	return &UseCase{
 		userRepo: userRepo,
 	}

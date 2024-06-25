@@ -12,26 +12,22 @@ type Handler struct {
 	createUserUseCase *createuseruc.UseCase
 }
 
-func CreateHandler(useCase *createuseruc.UseCase) *Handler {
+func New(useCase *createuseruc.UseCase) *Handler {
 	return &Handler{createUserUseCase: useCase}
 }
 
 func (h *Handler) Execute(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		Name     string `json:"name"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
-	err := request.ReadJSON(w, r, input)
+	var i input
+	err := request.ReadJSON(w, r, i)
 	if err != nil {
 		response.BadRequestResponse(w, r, err)
 		return
 	}
 
 	useCaseInput := &createuseruc.Input{
-		Name:     input.Name,
-		Email:    input.Email,
-		Password: input.Password,
+		Name:     i.Name,
+		Email:    i.Email,
+		Password: i.Password,
 	}
 
 	_, err = h.createUserUseCase.Execute(useCaseInput)

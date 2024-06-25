@@ -15,6 +15,10 @@ type UserRepository struct {
 	db *sql.DB
 }
 
+func New(db *sql.DB) *UserRepository {
+	return &UserRepository{db: db}
+}
+
 func (r *UserRepository) Create(user userdm.User) error {
 	query := `INSERT INTO user 
 	(id, name, email, password_hash, status) values ($1, $2, $3, $4, $5)`

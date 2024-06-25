@@ -15,8 +15,14 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/cristiano-pacheco/pingo/internal/infra/http/handlers"
-	"github.com/cristiano-pacheco/pingo/internal/infra/http/router"
+	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/createuseruc"
+	"github.com/cristiano-pacheco/pingo/internal/domain/service/hashds"
+	"github.com/cristiano-pacheco/pingo/internal/infra/database/repository/userrepo"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/pinghandler"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/createuserhandler"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/response"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/lib/pq"
 )
 
@@ -73,8 +79,9 @@ func main() {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	// #########################################################################
+	// -------------------------------------------------------------------------
 	// Connect to the database
+
 	db, err := openDB(cfg)
 	if err != nil {
 		logger.Error(err.Error())
@@ -84,11 +91,45 @@ func main() {
 
 	logger.Info("database connection pool established")
 
-	// #########################################################################
-	handlers := handlers.New()
-	router := router.New(handlers, logger)
-	// #########################################################################
+	// -------------------------------------------------------------------------
+	// Repository Creation
+
+	userRepository := userrepo.New(db)
+
+	// -------------------------------------------------------------------------
+	// Service Creation
+
+	hashService := hashds.New()
+
+	// -------------------------------------------------------------------------
+	// UseCases Creation
+
+	mapper := createuseruc.NewMapper(hashService)
+	createUserUseCase := createuseruc.New(userRepository, mapper)
+
+	// -------------------------------------------------------------------------
+	// Handlers Creation
+
+	pingHandler := pinghandler.New()
+	createUserHandler := createuserhandler.New(createUserUseCase)
+
+	// -------------------------------------------------------------------------
+	// Routes registration
+
+	router := chi.NewRouter()
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+
+	router.NotFound(response.NotFoundResponse)
+	router.MethodNotAllowed(response.MethodNotAllowedResponse)
+
+	router.Get("/api/v1/ping", pingHandler.Execute)
+
+	router.Post("/api/v1/users", createUserHandler.Execute)
+
+	// -------------------------------------------------------------------------
 	// Start the webserver
+
 	err = startWebServer(router, &cfg, logger)
 	if err != nil {
 		logger.Error(err.Error())
@@ -118,12 +159,12 @@ func openDB(cfg config) (*sql.DB, error) {
 	return db, nil
 }
 
-func startWebServer(router *router.Router, cfg *config, logger *slog.Logger) error {
+func startWebServer(mux *chi.Mux, cfg *config, logger *slog.Logger) error {
 	var wg sync.WaitGroup
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.port),
-		Handler:      router.Mux,
+		Handler:      mux,
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
