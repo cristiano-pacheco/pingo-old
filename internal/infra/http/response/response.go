@@ -1,4 +1,4 @@
-// Package response contains sintax sugar functions to handle the JSON response
+// Package response contains sintax sugar functions to handle the JSON response.
 package response
 
 import (

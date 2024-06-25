@@ -1,4 +1,4 @@
-// Package userdm contains the user domain model
+// Package userdm contains the user domain model.
 package userdm
 
 import (

@@ -1,4 +1,4 @@
-// Package request contains the common methods to handle JSON data in the request
+// Package request contains the common methods to handle JSON data in the request.
 package request
 
 import (

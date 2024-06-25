@@ -1,4 +1,4 @@
-// Package createuseruc contains the use case to create the user
+// Package createuseruc contains the use case to create the user.
 package createuseruc
 
 import (

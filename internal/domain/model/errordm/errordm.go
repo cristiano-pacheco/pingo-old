@@ -1,4 +1,4 @@
-// Package errordm contains the Error domain model
+// Package errordm contains the Error domain model.
 package errordm
 
 import (

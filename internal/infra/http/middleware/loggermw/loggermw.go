@@ -1,4 +1,4 @@
-// Package loggermw contains a middeware to add a logger to the request context
+// Package loggermw contains a middeware to add a logger to the request context.
 package loggermw
 
 import (
