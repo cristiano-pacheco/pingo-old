@@ -1,3 +1,4 @@
+// Package identitydm contains the ID domain model
 package identitydm
 
 import "github.com/google/uuid"

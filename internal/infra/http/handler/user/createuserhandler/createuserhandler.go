@@ -1,3 +1,4 @@
+// Package createuserhandler provides a handler to handle the user creation.
 package createuserhandler
 
 import (

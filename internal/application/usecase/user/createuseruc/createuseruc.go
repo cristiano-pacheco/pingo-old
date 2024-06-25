@@ -1,3 +1,4 @@
+// Package createuseruc contains the use case to create the user
 package createuseruc
 
 import (

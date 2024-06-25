@@ -1,3 +1,4 @@
+// Package hashds contains a domain service to handle hash.
 package hashds
 
 import (

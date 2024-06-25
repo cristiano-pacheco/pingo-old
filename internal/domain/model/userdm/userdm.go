@@ -1,3 +1,4 @@
+// Package userdm contains the user domain model
 package userdm
 
 import (
@@ -26,7 +27,7 @@ func NewUser(name, email string, passwordHash []byte) (*User, error) {
 	em, err := NewEmail(email)
 	errs.Add("email", err)
 
-	status, err := NewStatus(STATUS_PENDING)
+	status, err := NewStatus(StatusPending)
 	errs.Add("status", err)
 
 	if errs.String() != "" {

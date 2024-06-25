@@ -1,3 +1,4 @@
+// Package pinghandler is a simple handler to check if the application is running well.
 package pinghandler
 
 import (

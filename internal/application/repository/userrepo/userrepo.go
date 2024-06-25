@@ -1,3 +1,4 @@
+// Package userrepo contains the user repository contract interface.
 package userrepo
 
 import (
@@ -11,6 +12,6 @@ type UserRepository interface {
 	Delete(user userdm.User) error
 	UpdatePassword(user userdm.User) error
 	UpdateResetPasswordToken(user userdm.User) error
-	FindById(id identitydm.ID) (*userdm.User, error)
+	FindByID(id identitydm.ID) (*userdm.User, error)
 	FindByEmail(email userdm.Email) (*userdm.User, error)
 }

@@ -1,3 +1,4 @@
+// Package errordm contains the Error domain model
 package errordm
 
 import (
@@ -25,14 +26,14 @@ func (v *Error) Add(key string, err error) {
 }
 
 func (v *Error) String() string {
-	return v.toJson()
+	return v.toJSON()
 }
 
 func (v *Error) Error() error {
-	return errors.New(string(v.toJson()))
+	return errors.New(string(v.toJSON()))
 }
 
-func (v *Error) toJson() string {
+func (v *Error) toJSON() string {
 	if len(v.errors) == 0 {
 		return ""
 	}

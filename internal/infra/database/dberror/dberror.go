@@ -1,3 +1,4 @@
+// Package dberror contains the errors related to the database.
 package dberror
 
 import "errors"

@@ -47,13 +47,6 @@ type config struct {
 		rps     float64
 		burst   int
 	}
-	smtp struct {
-		host     string
-		port     int
-		username string
-		password string
-		sender   string
-	}
 
 	cors struct {
 		trustedOrigins []string
