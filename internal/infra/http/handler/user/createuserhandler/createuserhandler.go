@@ -17,17 +17,21 @@ func New(useCase *createuseruc.UseCase) *Handler {
 }
 
 func (h *Handler) Execute(w http.ResponseWriter, r *http.Request) {
-	var i input
-	err := request.ReadJSON(w, r, i)
+	var input struct {
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	err := request.ReadJSON(w, r, &input)
 	if err != nil {
 		response.BadRequestResponse(w, r, err)
 		return
 	}
 
 	useCaseInput := &createuseruc.Input{
-		Name:     i.Name,
-		Email:    i.Email,
-		Password: i.Password,
+		Name:     input.Name,
+		Email:    input.Email,
+		Password: input.Password,
 	}
 
 	_, err = h.createUserUseCase.Execute(useCaseInput)

@@ -15,9 +15,12 @@ func New() *Error {
 	}
 }
 
-func (v *Error) Add(key, value string) {
+func (v *Error) Add(key string, err error) {
+	if err == nil {
+		return
+	}
 	if _, exists := v.errors[key]; !exists {
-		v.errors[key] = value
+		v.errors[key] = err.Error()
 	}
 }
 

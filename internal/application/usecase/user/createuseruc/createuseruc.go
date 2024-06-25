@@ -8,17 +8,18 @@ import (
 
 type UseCase struct {
 	userRepo userrepo.UserRepository
-	mapper   *Mapper
+	mapper   Mapper
 }
 
-func New(userRepo userrepo.UserRepository, mapper *Mapper) *UseCase {
+func New(userRepo userrepo.UserRepository, mapper Mapper) *UseCase {
 	return &UseCase{
 		userRepo: userRepo,
+		mapper:   mapper,
 	}
 }
 
 func (uc *UseCase) Execute(input *Input) (*Output, error) {
-	user, err := uc.mapper.mapInputToNewUser(*input)
+	user, err := uc.mapper.mapInputToNewUser(input)
 	if err != nil {
 		return nil, err
 	}

@@ -9,11 +9,11 @@ type Mapper struct {
 	hashService *hashds.Service
 }
 
-func NewMapper(hs *hashds.Service) *Mapper {
-	return &Mapper{hashService: hs}
+func NewMapper(hs *hashds.Service) Mapper {
+	return Mapper{hashService: hs}
 }
 
-func (m *Mapper) mapInputToNewUser(input Input) (*userdm.User, error) {
+func (m *Mapper) mapInputToNewUser(input *Input) (*userdm.User, error) {
 	passwordHash, err := m.hashService.GenerateFromPassword([]byte(input.Password))
 	if err != nil {
 		return nil, err

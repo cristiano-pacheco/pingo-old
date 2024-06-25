@@ -20,6 +20,7 @@ import (
 	"github.com/cristiano-pacheco/pingo/internal/infra/database/repository/userrepo"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/pinghandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/createuserhandler"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/middleware/loggermw"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/response"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -119,6 +120,7 @@ func main() {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
+	router.Use(loggermw.AddLoggerToContextMiddleware(logger))
 
 	router.NotFound(response.NotFoundResponse)
 	router.MethodNotAllowed(response.MethodNotAllowedResponse)

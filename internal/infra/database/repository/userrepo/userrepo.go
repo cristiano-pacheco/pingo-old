@@ -27,7 +27,7 @@ func (r *UserRepository) Create(user userdm.User) error {
 		user.ID.String(),
 		user.Name.String(),
 		user.Email.String(),
-		user.PasswordHash,
+		string(user.PasswordHash),
 		user.Status.String(),
 	}
 
@@ -67,7 +67,7 @@ func (r *UserRepository) UpdatePassword(user userdm.User) error {
 	query := `UPDATE user set password_hash = $1 where id = $2`
 
 	args := []any{
-		user.PasswordHash,
+		string(user.PasswordHash),
 		user.ID.String(),
 	}
 

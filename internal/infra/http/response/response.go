@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/middleware/loggermw"
 )
 
 type Envelope map[string]any
@@ -81,7 +83,7 @@ func JSONResponse(w http.ResponseWriter, status int, data Envelope, headers http
 func LogError(r *http.Request, err error) {
 	method := r.Method
 	uri := r.URL.RequestURI()
-	logger := r.Context().Value("logger").(*slog.Logger)
+	logger := r.Context().Value(loggermw.LOGGER_CONTEXT_KEY).(*slog.Logger)
 
 	logger.Error(err.Error(), "method", method, "uri", uri)
 }

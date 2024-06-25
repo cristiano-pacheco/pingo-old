@@ -21,13 +21,13 @@ type User struct {
 func NewUser(name, email string, passwordHash []byte) (*User, error) {
 	errs := errordm.New()
 	n, err := NewName(name)
-	errs.Add("name", err.Error())
+	errs.Add("name", err)
 
 	em, err := NewEmail(email)
-	errs.Add("email", err.Error())
+	errs.Add("email", err)
 
 	status, err := NewStatus(STATUS_PENDING)
-	errs.Add("status", err.Error())
+	errs.Add("status", err)
 
 	if errs.String() != "" {
 		return nil, errs.Error()
@@ -49,16 +49,16 @@ func RestoreUser(
 	errs := errordm.New()
 
 	idVo, err := identitydm.Restore(id)
-	errs.Add("id", err.Error())
+	errs.Add("id", err)
 
 	nameVo, err := NewName(name)
-	errs.Add("name", err.Error())
+	errs.Add("name", err)
 
 	emailVo, err := NewEmail(email)
-	errs.Add("email", err.Error())
+	errs.Add("email", err)
 
 	statusVo, err := NewStatus(status)
-	errs.Add("status", err.Error())
+	errs.Add("status", err)
 
 	if errs.String() != "" {
 		return nil, errs.Error()
