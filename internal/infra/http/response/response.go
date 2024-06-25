@@ -84,7 +84,7 @@ func JSONResponse(w http.ResponseWriter, status int, data Envelope, headers http
 func LogError(r *http.Request, err error) {
 	method := r.Method
 	uri := r.URL.RequestURI()
-	logger := r.Context().Value(loggermw.LoggerContextKey).(*slog.Logger)
+	logger := r.Context().Value(loggermw.NewLoggerKeyContext()).(*slog.Logger)
 
 	logger.Error(err.Error(), "method", method, "uri", uri)
 }

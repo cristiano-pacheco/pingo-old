@@ -25,7 +25,10 @@ func (uc *UseCase) Execute(input *Input) (*Output, error) {
 		return nil, err
 	}
 
-	dbUser, _ := uc.userRepo.FindByEmail(user.Email)
+	dbUser, err := uc.userRepo.FindByEmail(user.Email)
+	if err != nil {
+		return nil, fmt.Errorf("error during user fetch by email: %s", err.Error())
+	}
 	if dbUser != nil {
 		return nil, fmt.Errorf("the email %s is already in use", input.Email)
 	}

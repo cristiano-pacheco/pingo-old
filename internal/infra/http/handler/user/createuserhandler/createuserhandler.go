@@ -18,30 +18,33 @@ func New(useCase *createuseruc.UseCase) *Handler {
 }
 
 func (h *Handler) Execute(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		Name     string `json:"name"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
-	err := request.ReadJSON(w, r, &input)
+	var in input
+	err := request.ReadJSON(w, r, &in)
 	if err != nil {
 		response.BadRequestResponse(w, r, err)
 		return
 	}
 
 	useCaseInput := &createuseruc.Input{
-		Name:     input.Name,
-		Email:    input.Email,
-		Password: input.Password,
+		Name:     in.Name,
+		Email:    in.Email,
+		Password: in.Password,
 	}
 
-	_, err = h.createUserUseCase.Execute(useCaseInput)
+	useCaseOutput, err := h.createUserUseCase.Execute(useCaseInput)
 	if err != nil {
 		response.ServerErrorResponse(w, r, err)
 		return
 	}
 
-	err = response.JSONResponse(w, http.StatusCreated, nil, nil)
+	out := &output{
+		ID:    useCaseOutput.ID,
+		Name:  useCaseOutput.Name,
+		Email: useCaseOutput.Email,
+	}
+
+	envelope := &response.Envelope{"data": out}
+	err = response.JSONResponse(w, http.StatusCreated, *envelope, nil)
 	if err != nil {
 		response.ServerErrorResponse(w, r, err)
 		return

@@ -24,6 +24,9 @@ dev-gotooling:
 ping:
 	curl -il http://localhost:4000/api/v1/ping
 
+run:
+	go run ./cmd/api/main.go
+
 # ==============================================================================
 # Running tests within the local computer
 

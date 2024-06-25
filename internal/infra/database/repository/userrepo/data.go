@@ -1,6 +1,9 @@
 package userrepo
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
 
 type UserDB struct {
 	ID                 string
@@ -8,7 +11,7 @@ type UserDB struct {
 	Email              string
 	PasswordHash       string
 	Status             string
-	ResetPasswordToken string
+	ResetPasswordToken sql.NullString
 	CreatedAT          time.Time
 	UpdatedAT          time.Time
 }

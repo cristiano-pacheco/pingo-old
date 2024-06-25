@@ -14,7 +14,7 @@ func NewEmail(value string) (*Email, error) {
 	if err != nil {
 		return nil, err
 	}
-	email := strings.ToLower(v.String())
+	email := strings.ToLower(v.Address)
 	return &Email{value: email}, nil
 }
 

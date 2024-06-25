@@ -22,7 +22,7 @@ func New(db *sql.DB) *UserRepository {
 
 func (r *UserRepository) Create(user userdm.User) error {
 	query := `INSERT INTO users 
-	(id, name, email, password_hash, status) values ($1, $2, $3, $4, $5)`
+	(id, name, email, password_hash, status, created_at, updated_at) values ($1, $2, $3, $4, $5, now(), now())`
 
 	args := []any{
 		user.ID.String(),
@@ -165,7 +165,7 @@ func (r *UserRepository) FindByEmail(email userdm.Email) (*userdm.User, error) {
 		from users where email = $1
 	`
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	var userdb UserDB
