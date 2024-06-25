@@ -21,7 +21,7 @@ func New(db *sql.DB) *UserRepository {
 }
 
 func (r *UserRepository) Create(user userdm.User) error {
-	query := `INSERT INTO user 
+	query := `INSERT INTO users 
 	(id, name, email, password_hash, status) values ($1, $2, $3, $4, $5)`
 
 	args := []any{
@@ -44,7 +44,7 @@ func (r *UserRepository) Create(user userdm.User) error {
 }
 
 func (r *UserRepository) Update(user userdm.User) error {
-	query := `UPDATE user set name = $1, email = $2, status = $3 where id = $4`
+	query := `UPDATE users set name = $1, email = $2, status = $3 where id = $4`
 
 	args := []any{
 		user.Name.String(),
@@ -65,7 +65,7 @@ func (r *UserRepository) Update(user userdm.User) error {
 }
 
 func (r *UserRepository) UpdatePassword(user userdm.User) error {
-	query := `UPDATE user set password_hash = $1 where id = $2`
+	query := `UPDATE users set password_hash = $1 where id = $2`
 
 	args := []any{
 		string(user.PasswordHash),
@@ -84,7 +84,7 @@ func (r *UserRepository) UpdatePassword(user userdm.User) error {
 }
 
 func (r *UserRepository) UpdateResetPasswordToken(user userdm.User) error {
-	query := `UPDATE user set reset_password_token = $1 where id = $2`
+	query := `UPDATE users set reset_password_token = $1 where id = $2`
 
 	args := []any{
 		user.ResetPasswordToken,
@@ -103,7 +103,7 @@ func (r *UserRepository) UpdateResetPasswordToken(user userdm.User) error {
 }
 
 func (r *UserRepository) Delete(user userdm.User) error {
-	query := `DELETE from user where id = $1`
+	query := `DELETE from users where id = $1`
 
 	args := []any{
 		user.ID.String(),
@@ -123,7 +123,7 @@ func (r *UserRepository) Delete(user userdm.User) error {
 func (r *UserRepository) FindByID(id identitydm.ID) (*userdm.User, error) {
 	query := `
 		select id, name, email, password_hash, status, reset_password_token, created_at, updated_at
-		from user where id = $1
+		from users where id = $1
 	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -162,7 +162,7 @@ func (r *UserRepository) FindByID(id identitydm.ID) (*userdm.User, error) {
 func (r *UserRepository) FindByEmail(email userdm.Email) (*userdm.User, error) {
 	query := `
 		select id, name, email, password_hash, status, reset_password_token, created_at, updated_at
-		from user where email = $1
+		from users where email = $1
 	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
