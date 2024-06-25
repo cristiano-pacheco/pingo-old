@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -25,6 +26,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/lib/pq"
+
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 type config struct {
@@ -81,6 +86,14 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	// -------------------------------------------------------------------------
+	// Load the .env file
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	// -------------------------------------------------------------------------
 	// Connect to the database
 
 	db, err := openDB(cfg)
@@ -91,6 +104,25 @@ func main() {
 	defer db.Close()
 
 	logger.Info("database connection pool established")
+
+	// -------------------------------------------------------------------------
+	// Run database migrations
+
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+	m, err := migrate.NewWithDatabaseInstance(
+		"file:///internal/infra/database/migrations",
+		"postgres", driver)
+
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
+	m.Up()
 
 	// -------------------------------------------------------------------------
 	// Repository Creation
