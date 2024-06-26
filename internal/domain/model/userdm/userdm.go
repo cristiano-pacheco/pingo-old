@@ -4,7 +4,6 @@ package userdm
 import (
 	"time"
 
-	"github.com/cristiano-pacheco/pingo/internal/domain/model/errordm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/identitydm"
 )
 
@@ -20,25 +19,26 @@ type User struct {
 }
 
 func NewUser(name, email string, passwordHash []byte) (*User, error) {
-	errs := errordm.New()
-	n, err := NewName(name)
-	errs.Add("name", err)
+	nameVo, err := NewName(name)
+	if err != nil {
+		return nil, err
+	}
 
-	em, err := NewEmail(email)
-	errs.Add("email", err)
+	emailVo, err := NewEmail(email)
+	if err != nil {
+		return nil, err
+	}
 
-	status, err := NewStatus(StatusPending)
-	errs.Add("status", err)
-
-	if errs.String() != "" {
-		return nil, errs.Error()
+	statusVo, err := NewStatus(StatusPending)
+	if err != nil {
+		return nil, err
 	}
 
 	return &User{
 		ID:           *identitydm.New(),
-		Name:         *n,
-		Email:        *em,
-		Status:       *status,
+		Name:         *nameVo,
+		Email:        *emailVo,
+		Status:       *statusVo,
 		PasswordHash: passwordHash,
 		CreatedAT:    time.Now().UTC(),
 	}, nil
@@ -47,22 +47,24 @@ func NewUser(name, email string, passwordHash []byte) (*User, error) {
 func RestoreUser(
 	id, name, email, passwordHash, status, resetPasswordToken string, createdAT, updatedAT time.Time,
 ) (*User, error) {
-	errs := errordm.New()
-
 	idVo, err := identitydm.Restore(id)
-	errs.Add("id", err)
+	if err != nil {
+		return nil, err
+	}
 
 	nameVo, err := NewName(name)
-	errs.Add("name", err)
+	if err != nil {
+		return nil, err
+	}
 
 	emailVo, err := NewEmail(email)
-	errs.Add("email", err)
+	if err != nil {
+		return nil, err
+	}
 
-	statusVo, err := NewStatus(status)
-	errs.Add("status", err)
-
-	if errs.String() != "" {
-		return nil, errs.Error()
+	statusVo, err := NewStatus(StatusPending)
+	if err != nil {
+		return nil, err
 	}
 
 	user := &User{
