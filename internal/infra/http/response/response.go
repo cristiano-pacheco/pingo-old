@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/middleware/loggermw"
+	"github.com/cristiano-pacheco/pingo/internal/infra/validator"
 )
 
 type Envelope map[string]any
@@ -29,11 +30,22 @@ func ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 }
 
 func BadRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
-	ErrorResponse(w, r, http.StatusInternalServerError, err.Error())
+	ErrorResponse(w, r, http.StatusBadRequest, err.Error())
 }
 
-func ValidationFailedResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) {
-	ErrorResponse(w, r, http.StatusUnprocessableEntity, errors)
+func ValidationFailedResponse(w http.ResponseWriter, r *http.Request, vr *validator.ValidationResult) {
+	if vr == nil {
+		ServerErrorResponse(w, r, nil)
+		return
+	}
+
+	envelope := Envelope{"data": vr}
+
+	err := JSONResponse(w, http.StatusUnprocessableEntity, envelope, nil)
+	if err != nil {
+		LogError(r, err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 func InvalidCredentialsResponse(w http.ResponseWriter, r *http.Request) {

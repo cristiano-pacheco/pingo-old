@@ -2,11 +2,14 @@
 package createuserhandler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/createuseruc"
+	"github.com/cristiano-pacheco/pingo/internal/infra/database/dberror"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/request"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/response"
+	"github.com/lib/pq"
 )
 
 type Handler struct {
@@ -25,23 +28,28 @@ func (h *Handler) Execute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	useCaseInput := &createuseruc.Input{
-		Name:     in.Name,
-		Email:    in.Email,
-		Password: in.Password,
+	vr := validateInput(in)
+	if !vr.IsValid {
+		response.ValidationFailedResponse(w, r, vr)
+		return
 	}
+
+	useCaseInput := mapInputToUseCaseInput(in)
 
 	useCaseOutput, err := h.createUserUseCase.Execute(useCaseInput)
 	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			if pqErr.Code == dberror.ErrUniqueViolationCode {
+				newErr := fmt.Errorf("the email %s is already in use", in.Email)
+				response.BadRequestResponse(w, r, newErr)
+				return
+			}
+		}
 		response.ServerErrorResponse(w, r, err)
 		return
 	}
 
-	out := &output{
-		ID:    useCaseOutput.ID,
-		Name:  useCaseOutput.Name,
-		Email: useCaseOutput.Email,
-	}
+	out := mapUseCaseOutputToOutput(useCaseOutput)
 
 	envelope := &response.Envelope{"data": out}
 	err = response.JSONResponse(w, http.StatusCreated, *envelope, nil)

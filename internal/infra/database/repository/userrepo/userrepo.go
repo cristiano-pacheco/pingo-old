@@ -182,12 +182,7 @@ func (r *UserRepository) FindByEmail(email userdm.Email) (*userdm.User, error) {
 	)
 
 	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return nil, dberror.ErrRecordNotFound
-		default:
-			return nil, err
-		}
+		return nil, err
 	}
 
 	user, err := mapUserDBToUser(&userdb)
