@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -16,32 +17,48 @@ import (
 	"time"
 
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/createuseruc"
+	"github.com/cristiano-pacheco/pingo/internal/domain/model/configdm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/service/hashds"
 	"github.com/cristiano-pacheco/pingo/internal/infra/database/repository/userrepo"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/pinghandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/createuserhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/middleware/loggermw"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/response"
+	"github.com/cristiano-pacheco/pingo/internal/infra/mailer/mailertemplate"
+	"github.com/cristiano-pacheco/pingo/internal/infra/mailer/smtpmailer"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/lib/pq"
 
+	"github.com/go-mail/mail/v2"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/joho/godotenv"
 )
 
 type config struct {
-	port int
-	env  string
-	db   struct {
+	port    int
+	env     string
+	baseURL string
+	db      struct {
 		dsn          string
 		maxOpenConns int
 		maxIdleConns int
 		maxIdleTime  time.Duration
 	}
+
 	limiter struct {
 		enabled bool
 		rps     float64
 		burst   int
+	}
+	smtp struct {
+		host     string
+		port     int
+		username string
+		password string
+		sender   string
 	}
 
 	cors struct {
@@ -53,7 +70,7 @@ func main() {
 	var cfg config
 
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
-	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
+	flag.StringVar(&cfg.env, "env", "dev", "Environment (dev|staging|production)")
 
 	defaultDSN := "postgres://postgres:123456789@127.0.0.1/pingo?sslmode=disable"
 	flag.StringVar(&cfg.db.dsn, "db-dsn", defaultDSN, "PostgreSQL DSN")
@@ -65,6 +82,15 @@ func main() {
 	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
 	flag.Float64Var(&cfg.limiter.rps, "limiter-rps", 2, "Rate limiter maximum requests per second")
 	flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
+
+	defaultBaseURL := fmt.Sprintf("http://localhost:%d", cfg.port)
+	flag.StringVar(&cfg.baseURL, "base-url", defaultBaseURL, "Base URL")
+
+	flag.StringVar(&cfg.smtp.host, "smtp-host", "sandbox.smtp.mailtrap.io", "SMTP host")
+	flag.IntVar(&cfg.smtp.port, "smtp-port", 25, "SMTP port")
+	flag.StringVar(&cfg.smtp.username, "smtp-username", "dd7ff882c024ab", "SMTP username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", "3e2207712f6eef", "SMTP password")
+	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Pingo <no-reply@pingo.com>", "SMTP sender")
 
 	flag.Func("cors-trusted-origins", "Trusted CORS origins (space separated)", func(val string) error {
 		cfg.cors.trustedOrigins = strings.Fields(val)
@@ -78,10 +104,18 @@ func main() {
 	// -------------------------------------------------------------------------
 	// Load the .env file
 
-	// err := godotenv.Load()
-	// if err != nil {
-	// 	log.Fatal("Error loading .env file")
-	// }
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	// -------------------------------------------------------------------------
+	// Create the configuration domain value object
+
+	configVo, err := configdm.New(cfg.env, cfg.baseURL)
+	if err != nil {
+		log.Fatalf("Error creating the config value object: %s", err)
+	}
 
 	// -------------------------------------------------------------------------
 	// Connect to the database
@@ -98,18 +132,18 @@ func main() {
 	// -------------------------------------------------------------------------
 	// Run database migrations
 
-	// driver, err := postgres.WithInstance(db, &postgres.Config{})
-	// if err != nil {
-	// 	logger.Error(err.Error())
-	// 	os.Exit(1)
-	// }
-	// m, err := migrate.NewWithDatabaseInstance("file://migrations", "postgres", driver)
-	// if err != nil {
-	// 	logger.Error(err.Error())
-	// 	os.Exit(1)
-	// }
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+	m, err := migrate.NewWithDatabaseInstance("file://migrations", "postgres", driver)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
 
-	// m.Up()
+	m.Up()
 
 	// -------------------------------------------------------------------------
 	// Repository Creation
@@ -122,10 +156,23 @@ func main() {
 	hashService := hashds.New()
 
 	// -------------------------------------------------------------------------
+	// Gateways Creation
+	dialer := mail.NewDialer(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password)
+	smtpMailerGW := smtpmailer.New(dialer, cfg.smtp.sender)
+
+	mailerTemplate := mailertemplate.MailerTemplate{}
+
+	// -------------------------------------------------------------------------
 	// UseCases Creation
 
-	mapper := createuseruc.NewMapper(hashService)
-	createUserUseCase := createuseruc.New(userRepository, mapper)
+	createUserMapper := createuseruc.NewMapper(hashService)
+	createUserUseCase := createuseruc.New(
+		userRepository,
+		smtpMailerGW,
+		mailerTemplate,
+		configVo,
+		createUserMapper,
+	)
 
 	// -------------------------------------------------------------------------
 	// Handlers Creation

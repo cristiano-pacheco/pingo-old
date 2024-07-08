@@ -7,9 +7,10 @@ func mapUserDBToUser(userdb *UserDB) (*userdm.User, error) {
 		userdb.ID,
 		userdb.Name,
 		userdb.Email,
-		userdb.PasswordHash,
 		userdb.Status,
-		userdb.ResetPasswordToken.String,
+		userdb.PasswordHash,
+		userdb.AccountConfirmationToken,
+		userdb.ResetPasswordToken,
 		userdb.CreatedAT,
 		userdb.UpdatedAT,
 	)

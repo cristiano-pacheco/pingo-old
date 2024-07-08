@@ -22,13 +22,15 @@ func New(db *sql.DB) *UserRepository {
 
 func (r *UserRepository) Create(user userdm.User) error {
 	query := `INSERT INTO users 
-	(id, name, email, password_hash, status, created_at, updated_at) values ($1, $2, $3, $4, $5, now(), now())`
+	(id, name, email, password_hash, account_confirmation_token, status, created_at, updated_at) 
+	values ($1, $2, $3, $4, $5, $6, now(), now())`
 
 	args := []any{
 		user.ID.String(),
 		user.Name.String(),
 		user.Email.String(),
-		string(user.PasswordHash),
+		user.PasswordHash,
+		user.AccountConfirmationToken,
 		user.Status.String(),
 	}
 
@@ -68,7 +70,7 @@ func (r *UserRepository) UpdatePassword(user userdm.User) error {
 	query := `UPDATE users set password_hash = $1 where id = $2`
 
 	args := []any{
-		string(user.PasswordHash),
+		user.PasswordHash,
 		user.ID.String(),
 	}
 
@@ -88,6 +90,25 @@ func (r *UserRepository) UpdateResetPasswordToken(user userdm.User) error {
 
 	args := []any{
 		user.ResetPasswordToken,
+		user.ID.String(),
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := r.db.ExecContext(ctx, query, args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *UserRepository) ActivateUser(user userdm.User) error {
+	query := `UPDATE users set account_confirmation_token = null, status = $1 where id = $2`
+
+	args := []any{
+		userdm.StatusConfirmed,
 		user.ID.String(),
 	}
 
@@ -122,7 +143,7 @@ func (r *UserRepository) Delete(user userdm.User) error {
 
 func (r *UserRepository) FindByID(id identitydm.ID) (*userdm.User, error) {
 	query := `
-		select id, name, email, password_hash, status, reset_password_token, created_at, updated_at
+		select id, name, email, password_hash, status, account_confirmation_token, reset_password_token, created_at, updated_at
 		from users where id = $1
 	`
 
@@ -137,6 +158,47 @@ func (r *UserRepository) FindByID(id identitydm.ID) (*userdm.User, error) {
 		&userdb.Email,
 		&userdb.PasswordHash,
 		&userdb.Status,
+		&userdb.AccountConfirmationToken,
+		&userdb.ResetPasswordToken,
+		&userdb.CreatedAT,
+		&userdb.UpdatedAT,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, dberror.ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	user, err := mapUserDBToUser(&userdb)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (r *UserRepository) FindByAccountConfirmationToken(accountConfToken []byte) (*userdm.User, error) {
+	query := `
+		select id, name, email, password_hash, status, account_confirmation_token, reset_password_token, created_at, updated_at
+		from users where account_confirmation_token = $1
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var userdb UserDB
+
+	err := r.db.QueryRowContext(ctx, query, accountConfToken).Scan(
+		&userdb.ID,
+		&userdb.Name,
+		&userdb.Email,
+		&userdb.PasswordHash,
+		&userdb.Status,
+		&userdb.AccountConfirmationToken,
 		&userdb.ResetPasswordToken,
 		&userdb.CreatedAT,
 		&userdb.UpdatedAT,
@@ -161,7 +223,7 @@ func (r *UserRepository) FindByID(id identitydm.ID) (*userdm.User, error) {
 
 func (r *UserRepository) FindByEmail(email userdm.Email) (*userdm.User, error) {
 	query := `
-		select id, name, email, password_hash, status, reset_password_token, created_at, updated_at
+		select id, name, email, password_hash, status, account_confirmation_token reset_password_token, created_at, updated_at
 		from users where email = $1
 	`
 
@@ -176,6 +238,7 @@ func (r *UserRepository) FindByEmail(email userdm.Email) (*userdm.User, error) {
 		&userdb.Email,
 		&userdb.PasswordHash,
 		&userdb.Status,
+		&userdb.AccountConfirmationToken,
 		&userdb.ResetPasswordToken,
 		&userdb.CreatedAT,
 		&userdb.UpdatedAT,

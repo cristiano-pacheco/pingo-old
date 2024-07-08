@@ -8,17 +8,18 @@ import (
 )
 
 type User struct {
-	ID                 identitydm.ID
-	Name               Name
-	Email              Email
-	PasswordHash       []byte
-	Status             Status
-	ResetPasswordToken string
-	CreatedAT          time.Time
-	UpdatedAT          time.Time
+	ID                       identitydm.ID
+	Name                     Name
+	Email                    Email
+	PasswordHash             []byte
+	Status                   Status
+	ResetPasswordToken       []byte
+	AccountConfirmationToken []byte
+	CreatedAT                time.Time
+	UpdatedAT                time.Time
 }
 
-func NewUser(name, email string, passwordHash []byte) (*User, error) {
+func NewUser(name, email string, passwordHash, accountConfToken []byte) (*User, error) {
 	nameVo, err := NewName(name)
 	if err != nil {
 		return nil, err
@@ -35,17 +36,20 @@ func NewUser(name, email string, passwordHash []byte) (*User, error) {
 	}
 
 	return &User{
-		ID:           *identitydm.New(),
-		Name:         *nameVo,
-		Email:        *emailVo,
-		Status:       *statusVo,
-		PasswordHash: passwordHash,
-		CreatedAT:    time.Now().UTC(),
+		ID:                       *identitydm.New(),
+		Name:                     *nameVo,
+		Email:                    *emailVo,
+		Status:                   *statusVo,
+		PasswordHash:             passwordHash,
+		AccountConfirmationToken: accountConfToken,
+		CreatedAT:                time.Now().UTC(),
 	}, nil
 }
 
 func RestoreUser(
-	id, name, email, passwordHash, status, resetPasswordToken string, createdAT, updatedAT time.Time,
+	id, name, email, status string,
+	passwordHash, accountConfToken, resetPasswordToken []byte,
+	createdAT, updatedAT time.Time,
 ) (*User, error) {
 	idVo, err := identitydm.Restore(id)
 	if err != nil {
@@ -68,13 +72,15 @@ func RestoreUser(
 	}
 
 	user := &User{
-		ID:           *idVo,
-		Name:         *nameVo,
-		Email:        *emailVo,
-		PasswordHash: []byte(passwordHash),
-		Status:       *statusVo,
-		CreatedAT:    createdAT,
-		UpdatedAT:    updatedAT,
+		ID:                       *idVo,
+		Name:                     *nameVo,
+		Email:                    *emailVo,
+		PasswordHash:             passwordHash,
+		AccountConfirmationToken: accountConfToken,
+		ResetPasswordToken:       resetPasswordToken,
+		Status:                   *statusVo,
+		CreatedAT:                createdAT,
+		UpdatedAT:                updatedAT,
 	}
 
 	return user, nil

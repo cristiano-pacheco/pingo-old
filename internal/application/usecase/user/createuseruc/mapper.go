@@ -18,7 +18,12 @@ func (m *Mapper) mapInputToNewUser(input *Input) (*userdm.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	user, err := userdm.NewUser(input.Name, input.Email, passwordHash)
+
+	accountConfToken, err := m.hashService.GenerateRandomBytes()
+	if err != nil {
+		return nil, err
+	}
+	user, err := userdm.NewUser(input.Name, input.Email, passwordHash, accountConfToken)
 	if err != nil {
 		return nil, err
 	}
