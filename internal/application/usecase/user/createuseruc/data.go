@@ -11,3 +11,8 @@ type Output struct {
 	Name  string
 	Email string
 }
+
+type accountConfirmationTemplateVars struct {
+	Name                    string
+	AccountConfirmationLink string
+}

@@ -87,7 +87,7 @@ func main() {
 	flag.StringVar(&cfg.baseURL, "base-url", defaultBaseURL, "Base URL")
 
 	flag.StringVar(&cfg.smtp.host, "smtp-host", "sandbox.smtp.mailtrap.io", "SMTP host")
-	flag.IntVar(&cfg.smtp.port, "smtp-port", 25, "SMTP port")
+	flag.IntVar(&cfg.smtp.port, "smtp-port", 2525, "SMTP port")
 	flag.StringVar(&cfg.smtp.username, "smtp-username", "dd7ff882c024ab", "SMTP username")
 	flag.StringVar(&cfg.smtp.password, "smtp-password", "3e2207712f6eef", "SMTP password")
 	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Pingo <no-reply@pingo.com>", "SMTP sender")

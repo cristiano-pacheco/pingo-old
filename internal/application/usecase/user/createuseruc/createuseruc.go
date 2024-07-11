@@ -2,8 +2,6 @@
 package createuseruc
 
 import (
-	"fmt"
-
 	"github.com/cristiano-pacheco/pingo/internal/application/gateway/mailergw"
 	"github.com/cristiano-pacheco/pingo/internal/application/gateway/mailertemplategw"
 	"github.com/cristiano-pacheco/pingo/internal/application/repository/userrepo"
@@ -45,23 +43,10 @@ func (uc *UseCase) Execute(input *Input) (*Output, error) {
 		return nil, err
 	}
 
-	accountConfLink := fmt.Sprintf(
-		"%s/user/confirmation/%s",
-		uc.config.BaseURL.String(),
-		user.AccountConfirmationToken,
-	)
-
-	// template data
-	data := struct {
-		Name                    string
-		AccountConfirmationLink string
-	}{
-		Name:                    user.Name.String(),
-		AccountConfirmationLink: accountConfLink,
-	}
+	tplVars := uc.mapper.mapAccountConfTemplVars(*user, uc.config.BaseURL.String())
 
 	// template content
-	content, err := uc.mailerTemplateGW.CompileTemplate("account_confirmation.gohtml", data)
+	content, err := uc.mailerTemplateGW.CompileTemplate("account_confirmation.gohtml", tplVars)
 	if err != nil {
 		return nil, err
 	}

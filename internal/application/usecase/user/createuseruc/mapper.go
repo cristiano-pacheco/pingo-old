@@ -1,6 +1,9 @@
 package createuseruc
 
 import (
+	"encoding/base64"
+	"fmt"
+
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/userdm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/service/hashds"
 )
@@ -35,5 +38,20 @@ func (m *Mapper) mapUserToOutput(user userdm.User) *Output {
 		ID:    user.ID.String(),
 		Name:  user.Name.String(),
 		Email: user.Email.String(),
+	}
+}
+
+func (m *Mapper) mapAccountConfTemplVars(user userdm.User, baseURL string) *accountConfirmationTemplateVars {
+	accountConfToken := base64.StdEncoding.EncodeToString(user.AccountConfirmationToken)
+	accountConfLink := fmt.Sprintf(
+		"%s/user/confirmation?id=%s&token=%s",
+		baseURL,
+		user.ID.String(),
+		accountConfToken,
+	)
+
+	return &accountConfirmationTemplateVars{
+		Name:                    user.Name.String(),
+		AccountConfirmationLink: accountConfLink,
 	}
 }
