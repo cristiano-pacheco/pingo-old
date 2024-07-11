@@ -181,46 +181,6 @@ func (r *UserRepository) FindByID(id identitydm.ID) (*userdm.User, error) {
 	return user, nil
 }
 
-func (r *UserRepository) FindByAccountConfirmationToken(accountConfToken []byte) (*userdm.User, error) {
-	query := `
-		select id, name, email, password_hash, status, account_confirmation_token, reset_password_token, created_at, updated_at
-		from users where account_confirmation_token = $1
-	`
-
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	var userdb UserDB
-
-	err := r.db.QueryRowContext(ctx, query, accountConfToken).Scan(
-		&userdb.ID,
-		&userdb.Name,
-		&userdb.Email,
-		&userdb.PasswordHash,
-		&userdb.Status,
-		&userdb.AccountConfirmationToken,
-		&userdb.ResetPasswordToken,
-		&userdb.CreatedAT,
-		&userdb.UpdatedAT,
-	)
-
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return nil, dberror.ErrRecordNotFound
-		default:
-			return nil, err
-		}
-	}
-
-	user, err := mapUserDBToUser(&userdb)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
-}
-
 func (r *UserRepository) FindByEmail(email userdm.Email) (*userdm.User, error) {
 	query := `
 		select id, name, email, password_hash, status, account_confirmation_token reset_password_token, created_at, updated_at
