@@ -1,4 +1,4 @@
-// Package sendresetpasswordemailuc contains the use case to reset the user password.
+// Package sendresetpasswordemailuc contains the use case to send the user reset password email.
 package sendresetpasswordemailuc
 
 import (

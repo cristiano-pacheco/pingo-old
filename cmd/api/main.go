@@ -18,6 +18,7 @@ import (
 
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/activateuseruc"
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/createuseruc"
+	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/resetpassworduc"
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/sendresetpasswordemailuc"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/configdm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/service/hashds"
@@ -25,6 +26,7 @@ import (
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/pinghandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/activateuserhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/createuserhandler"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/resetpasswordhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/sendresetpasswordemailhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/middleware/loggermw"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/response"
@@ -174,6 +176,7 @@ func main() {
 	createUserMapper := createuseruc.NewMapper(hashService)
 	createUserUseCase := createuseruc.New(userRepository, smtpMailerGW, mailerTemplate, configVo, createUserMapper)
 	sendResetPasswordEmailUseCase := sendresetpasswordemailuc.New(userRepository, smtpMailerGW, mailerTemplate, hashService, configVo)
+	resetPasswordUseCase := resetpassworduc.New(userRepository, hashService)
 	activateUserUseCase := activateuseruc.New(userRepository)
 
 	// -------------------------------------------------------------------------
@@ -183,6 +186,7 @@ func main() {
 	createUserHandler := createuserhandler.New(createUserUseCase)
 	activateUserHandler := activateuserhandler.New(activateUserUseCase)
 	sendResetPasswordEmailHandler := sendresetpasswordemailhandler.New(sendResetPasswordEmailUseCase)
+	resetPasswordHandler := resetpasswordhandler.New(resetPasswordUseCase)
 
 	// -------------------------------------------------------------------------
 	// Routes registration
@@ -201,6 +205,7 @@ func main() {
 	router.Post("/api/v1/users", createUserHandler.Execute)
 	router.Post("/api/v1/users/activate", activateUserHandler.Execute)
 	router.Post("/api/v1/users/reset-password", sendResetPasswordEmailHandler.Execute)
+	router.Put("/api/v1/users/reset-password", resetPasswordHandler.Execute)
 
 	// -------------------------------------------------------------------------
 	// Start the webserver

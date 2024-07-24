@@ -67,7 +67,7 @@ func (r *UserRepository) Update(user userdm.User) error {
 }
 
 func (r *UserRepository) UpdatePassword(user userdm.User) error {
-	query := `UPDATE users set password_hash = $1 where id = $2`
+	query := `UPDATE users set password_hash = $1, reset_password_token = null where id = $2`
 
 	args := []any{
 		user.PasswordHash,
