@@ -93,6 +93,10 @@ func JSONResponse(w http.ResponseWriter, status int, data Envelope, headers http
 	return nil
 }
 
+func EmptyResponse(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func LogError(r *http.Request, err error) {
 	method := r.Method
 	uri := r.URL.RequestURI()

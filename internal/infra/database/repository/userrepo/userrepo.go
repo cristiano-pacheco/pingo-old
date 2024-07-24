@@ -5,11 +5,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/identitydm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/userdm"
-	"github.com/cristiano-pacheco/pingo/internal/infra/database/dberror"
 )
 
 type UserRepository struct {
@@ -104,7 +104,7 @@ func (r *UserRepository) UpdateResetPasswordToken(user userdm.User) error {
 	return nil
 }
 
-func (r *UserRepository) ActivateUser(user userdm.User) error {
+func (r *UserRepository) ActivateAccount(user userdm.User) error {
 	query := `UPDATE users set account_confirmation_token = null, status = $1 where id = $2`
 
 	args := []any{
@@ -167,7 +167,7 @@ func (r *UserRepository) FindByID(id identitydm.ID) (*userdm.User, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, dberror.ErrRecordNotFound
+			return nil, fmt.Errorf("the user with ID: %s is not found", id.String())
 		default:
 			return nil, err
 		}
@@ -205,7 +205,12 @@ func (r *UserRepository) FindByEmail(email userdm.Email) (*userdm.User, error) {
 	)
 
 	if err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, fmt.Errorf("the user with Email: %s is not found", email.String())
+		default:
+			return nil, err
+		}
 	}
 
 	user, err := mapUserDBToUser(&userdb)

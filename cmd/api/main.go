@@ -16,11 +16,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/activateuseruc"
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/createuseruc"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/configdm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/service/hashds"
 	"github.com/cristiano-pacheco/pingo/internal/infra/database/repository/userrepo"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/pinghandler"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/activateuserhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/createuserhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/middleware/loggermw"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/response"
@@ -174,11 +176,14 @@ func main() {
 		createUserMapper,
 	)
 
+	activateUserUseCase := activateuseruc.New(userRepository)
+
 	// -------------------------------------------------------------------------
 	// Handlers Creation
 
 	pingHandler := pinghandler.New()
 	createUserHandler := createuserhandler.New(createUserUseCase)
+	activateUserHandler := activateuserhandler.New(activateUserUseCase)
 
 	// -------------------------------------------------------------------------
 	// Routes registration
@@ -193,7 +198,9 @@ func main() {
 
 	router.Get("/api/v1/ping", pingHandler.Execute)
 
+	// user
 	router.Post("/api/v1/users", createUserHandler.Execute)
+	router.Post("/api/v1/users/activate", activateUserHandler.Execute)
 
 	// -------------------------------------------------------------------------
 	// Start the webserver
