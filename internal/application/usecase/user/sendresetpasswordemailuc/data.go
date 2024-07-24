@@ -1,4 +1,4 @@
-package resetpassworduc
+package sendresetpasswordemailuc
 
 type Input struct {
 	Email string

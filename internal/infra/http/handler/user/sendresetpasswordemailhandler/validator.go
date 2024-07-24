@@ -1,4 +1,4 @@
-package resetpasswordhandler
+package sendresetpasswordemailhandler
 
 import (
 	"fmt"

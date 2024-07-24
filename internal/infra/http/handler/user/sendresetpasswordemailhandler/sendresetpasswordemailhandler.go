@@ -1,19 +1,19 @@
-// Package resetpasswordhandler handles the user reset password request.
-package resetpasswordhandler
+// Package sendresetpasswordemailhandler handles the user reset password request.
+package sendresetpasswordemailhandler
 
 import (
 	"net/http"
 
-	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/resetpassworduc"
+	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/sendresetpasswordemailuc"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/request"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/response"
 )
 
 type Handler struct {
-	resetPasswordUseCase *resetpassworduc.UseCase
+	resetPasswordUseCase *sendresetpasswordemailuc.UseCase
 }
 
-func New(useCase *resetpassworduc.UseCase) *Handler {
+func New(useCase *sendresetpasswordemailuc.UseCase) *Handler {
 	return &Handler{resetPasswordUseCase: useCase}
 }
 
@@ -31,7 +31,7 @@ func (h *Handler) Execute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	useCaseInput := &resetpassworduc.Input{Email: in.Email}
+	useCaseInput := &sendresetpasswordemailuc.Input{Email: in.Email}
 
 	err = h.resetPasswordUseCase.Execute(useCaseInput)
 	if err != nil {

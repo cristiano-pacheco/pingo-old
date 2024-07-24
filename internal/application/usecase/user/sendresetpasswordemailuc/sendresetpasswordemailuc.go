@@ -1,5 +1,5 @@
-// Package resetpassworduc contains the use case to reset the user password.
-package resetpassworduc
+// Package sendresetpasswordemailuc contains the use case to reset the user password.
+package sendresetpasswordemailuc
 
 import (
 	"github.com/cristiano-pacheco/pingo/internal/application/gateway/mailergw"

@@ -1,4 +1,4 @@
-package resetpassworduc
+package sendresetpasswordemailuc
 
 import (
 	"encoding/base64"

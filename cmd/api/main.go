@@ -18,14 +18,14 @@ import (
 
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/activateuseruc"
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/createuseruc"
-	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/resetpassworduc"
+	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/sendresetpasswordemailuc"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/configdm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/service/hashds"
 	"github.com/cristiano-pacheco/pingo/internal/infra/database/repository/userrepo"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/pinghandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/activateuserhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/createuserhandler"
-	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/resetpasswordhandler"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/sendresetpasswordemailhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/middleware/loggermw"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/response"
 	"github.com/cristiano-pacheco/pingo/internal/infra/mailer/mailertemplate"
@@ -173,7 +173,7 @@ func main() {
 
 	createUserMapper := createuseruc.NewMapper(hashService)
 	createUserUseCase := createuseruc.New(userRepository, smtpMailerGW, mailerTemplate, configVo, createUserMapper)
-	resetPasswordUseCase := resetpassworduc.New(userRepository, smtpMailerGW, mailerTemplate, hashService, configVo)
+	sendResetPasswordEmailUseCase := sendresetpasswordemailuc.New(userRepository, smtpMailerGW, mailerTemplate, hashService, configVo)
 	activateUserUseCase := activateuseruc.New(userRepository)
 
 	// -------------------------------------------------------------------------
@@ -182,7 +182,7 @@ func main() {
 	pingHandler := pinghandler.New()
 	createUserHandler := createuserhandler.New(createUserUseCase)
 	activateUserHandler := activateuserhandler.New(activateUserUseCase)
-	resetPasswordHandler := resetpasswordhandler.New(resetPasswordUseCase)
+	sendResetPasswordEmailHandler := sendresetpasswordemailhandler.New(sendResetPasswordEmailUseCase)
 
 	// -------------------------------------------------------------------------
 	// Routes registration
@@ -200,7 +200,7 @@ func main() {
 	// user
 	router.Post("/api/v1/users", createUserHandler.Execute)
 	router.Post("/api/v1/users/activate", activateUserHandler.Execute)
-	router.Post("/api/v1/users/reset-password", resetPasswordHandler.Execute)
+	router.Post("/api/v1/users/reset-password", sendResetPasswordEmailHandler.Execute)
 
 	// -------------------------------------------------------------------------
 	// Start the webserver
