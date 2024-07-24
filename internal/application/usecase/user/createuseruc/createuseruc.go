@@ -43,7 +43,7 @@ func (uc *UseCase) Execute(input *Input) (*Output, error) {
 		return nil, err
 	}
 
-	tplVars := uc.mapper.mapAccountConfTemplVars(*user, uc.config.BaseURL.String())
+	tplVars := uc.mapper.mapAccountConfTemplVars(*user, uc.config.FrontEndBaseURL.String())
 
 	// template content
 	content, err := uc.mailerTemplateGW.CompileTemplate("account_confirmation.gohtml", tplVars)

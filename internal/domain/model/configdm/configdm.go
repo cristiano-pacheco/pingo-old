@@ -2,23 +2,30 @@
 package configdm
 
 type Config struct {
-	Env     Env
-	BaseURL BaseURL
+	Env             Env
+	APIBaseURL      BaseURL
+	FrontEndBaseURL BaseURL
 }
 
-func New(env, baseURL string) (*Config, error) {
+func New(env, apiBaseUrl, frontendBaseURL string) (*Config, error) {
 	envVo, err := NewEnv(env)
 	if err != nil {
 		return nil, err
 	}
 
-	baseURLVo, err := NewBaseURL(baseURL)
+	apiBaseURLVo, err := NewBaseURL(apiBaseUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	frontEndBaseURLVo, err := NewBaseURL(frontendBaseURL)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Config{
-		Env:     *envVo,
-		BaseURL: *baseURLVo,
+		Env:             *envVo,
+		APIBaseURL:      *apiBaseURLVo,
+		FrontEndBaseURL: *frontEndBaseURLVo,
 	}, nil
 }

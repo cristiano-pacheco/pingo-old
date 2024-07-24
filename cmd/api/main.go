@@ -18,12 +18,14 @@ import (
 
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/activateuseruc"
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/createuseruc"
+	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/resetpassworduc"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/configdm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/service/hashds"
 	"github.com/cristiano-pacheco/pingo/internal/infra/database/repository/userrepo"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/pinghandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/activateuserhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/createuserhandler"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/resetpasswordhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/middleware/loggermw"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/response"
 	"github.com/cristiano-pacheco/pingo/internal/infra/mailer/mailertemplate"
@@ -40,10 +42,11 @@ import (
 )
 
 type config struct {
-	port    int
-	env     string
-	baseURL string
-	db      struct {
+	port            int
+	env             string
+	apiBaseURL      string
+	frontEndBaseURL string
+	db              struct {
 		dsn          string
 		maxOpenConns int
 		maxIdleConns int
@@ -86,7 +89,8 @@ func main() {
 	flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
 
 	defaultBaseURL := fmt.Sprintf("http://localhost:%d", cfg.port)
-	flag.StringVar(&cfg.baseURL, "base-url", defaultBaseURL, "Base URL")
+	flag.StringVar(&cfg.apiBaseURL, "api-base-url", defaultBaseURL, "API Base URL")
+	flag.StringVar(&cfg.frontEndBaseURL, "frontend-base-url", "http://localhost:3000", "FrontEnd Base URL")
 
 	flag.StringVar(&cfg.smtp.host, "smtp-host", "sandbox.smtp.mailtrap.io", "SMTP host")
 	flag.IntVar(&cfg.smtp.port, "smtp-port", 2525, "SMTP port")
@@ -114,7 +118,7 @@ func main() {
 	// -------------------------------------------------------------------------
 	// Create the configuration domain value object
 
-	configVo, err := configdm.New(cfg.env, cfg.baseURL)
+	configVo, err := configdm.New(cfg.env, cfg.apiBaseURL, cfg.frontEndBaseURL)
 	if err != nil {
 		log.Fatalf("Error creating the config value object: %s", err)
 	}
@@ -168,14 +172,8 @@ func main() {
 	// UseCases Creation
 
 	createUserMapper := createuseruc.NewMapper(hashService)
-	createUserUseCase := createuseruc.New(
-		userRepository,
-		smtpMailerGW,
-		mailerTemplate,
-		configVo,
-		createUserMapper,
-	)
-
+	createUserUseCase := createuseruc.New(userRepository, smtpMailerGW, mailerTemplate, configVo, createUserMapper)
+	resetPasswordUseCase := resetpassworduc.New(userRepository, smtpMailerGW, mailerTemplate, hashService, configVo)
 	activateUserUseCase := activateuseruc.New(userRepository)
 
 	// -------------------------------------------------------------------------
@@ -184,6 +182,7 @@ func main() {
 	pingHandler := pinghandler.New()
 	createUserHandler := createuserhandler.New(createUserUseCase)
 	activateUserHandler := activateuserhandler.New(activateUserUseCase)
+	resetPasswordHandler := resetpasswordhandler.New(resetPasswordUseCase)
 
 	// -------------------------------------------------------------------------
 	// Routes registration
@@ -201,6 +200,7 @@ func main() {
 	// user
 	router.Post("/api/v1/users", createUserHandler.Execute)
 	router.Post("/api/v1/users/activate", activateUserHandler.Execute)
+	router.Post("/api/v1/users/reset-password", resetPasswordHandler.Execute)
 
 	// -------------------------------------------------------------------------
 	// Start the webserver

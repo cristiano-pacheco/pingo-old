@@ -183,7 +183,7 @@ func (r *UserRepository) FindByID(id identitydm.ID) (*userdm.User, error) {
 
 func (r *UserRepository) FindByEmail(email userdm.Email) (*userdm.User, error) {
 	query := `
-		select id, name, email, password_hash, status, account_confirmation_token reset_password_token, created_at, updated_at
+		select id, name, email, password_hash, status, account_confirmation_token, reset_password_token, created_at, updated_at
 		from users where email = $1
 	`
 
