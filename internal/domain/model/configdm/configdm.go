@@ -7,13 +7,13 @@ type Config struct {
 	FrontEndBaseURL BaseURL
 }
 
-func New(env, apiBaseUrl, frontendBaseURL string) (*Config, error) {
+func New(env, apiBaseURL, frontendBaseURL string) (*Config, error) {
 	envVo, err := NewEnv(env)
 	if err != nil {
 		return nil, err
 	}
 
-	apiBaseURLVo, err := NewBaseURL(apiBaseUrl)
+	apiBaseURLVo, err := NewBaseURL(apiBaseURL)
 	if err != nil {
 		return nil, err
 	}
