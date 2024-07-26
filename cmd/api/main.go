@@ -17,14 +17,17 @@ import (
 	"time"
 
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/activateuseruc"
+	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/authenticateuseruc"
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/createuseruc"
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/resetpassworduc"
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/sendresetpasswordemailuc"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/configdm"
+	"github.com/cristiano-pacheco/pingo/internal/domain/model/privatekeydm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/service/hashds"
 	"github.com/cristiano-pacheco/pingo/internal/infra/database/repository/userrepo"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/pinghandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/activateuserhandler"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/authenticateuserhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/createuserhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/resetpasswordhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/sendresetpasswordemailhandler"
@@ -32,6 +35,7 @@ import (
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/response"
 	"github.com/cristiano-pacheco/pingo/internal/infra/mailer/mailertemplate"
 	"github.com/cristiano-pacheco/pingo/internal/infra/mailer/smtpmailer"
+	"github.com/cristiano-pacheco/pingo/internal/infra/service/tokensvc"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/lib/pq"
@@ -54,7 +58,6 @@ type config struct {
 		maxIdleConns int
 		maxIdleTime  time.Duration
 	}
-
 	limiter struct {
 		enabled bool
 		rps     float64
@@ -67,10 +70,10 @@ type config struct {
 		password string
 		sender   string
 	}
-
 	cors struct {
 		trustedOrigins []string
 	}
+	privateKeyPath string
 }
 
 func main() {
@@ -105,6 +108,8 @@ func main() {
 		return nil
 	})
 
+	flag.StringVar(&cfg.privateKeyPath, "private-key-path", "private.pem", "Private key path")
+
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -115,6 +120,19 @@ func main() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
+	}
+
+	// -------------------------------------------------------------------------
+	// Private key load
+
+	pemData, err := os.ReadFile(cfg.privateKeyPath)
+	if err != nil {
+		log.Fatalf("Error loading private key file", err)
+	}
+
+	privateKey, err := privatekeydm.New(pemData)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	// -------------------------------------------------------------------------
@@ -163,6 +181,9 @@ func main() {
 
 	hashService := hashds.New()
 
+	defaultIssueName := "pingo"
+	tokenService := tokensvc.New(privateKey, defaultIssueName)
+
 	// -------------------------------------------------------------------------
 	// Gateways Creation
 	dialer := mail.NewDialer(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password)
@@ -178,6 +199,7 @@ func main() {
 	sendResetPasswordEmailUseCase := sendresetpasswordemailuc.New(userRepository, smtpMailerGW, mailerTemplate, hashService, configVo)
 	resetPasswordUseCase := resetpassworduc.New(userRepository, hashService)
 	activateUserUseCase := activateuseruc.New(userRepository)
+	authenticateUserUseCase := authenticateuseruc.New(tokenService, userRepository, *hashService)
 
 	// -------------------------------------------------------------------------
 	// Handlers Creation
@@ -187,6 +209,7 @@ func main() {
 	activateUserHandler := activateuserhandler.New(activateUserUseCase)
 	sendResetPasswordEmailHandler := sendresetpasswordemailhandler.New(sendResetPasswordEmailUseCase)
 	resetPasswordHandler := resetpasswordhandler.New(resetPasswordUseCase)
+	authenticateUserHandler := authenticateuserhandler.New(authenticateUserUseCase)
 
 	// -------------------------------------------------------------------------
 	// Routes registration
@@ -206,6 +229,7 @@ func main() {
 	router.Post("/api/v1/users/activate", activateUserHandler.Execute)
 	router.Post("/api/v1/users/reset-password", sendResetPasswordEmailHandler.Execute)
 	router.Put("/api/v1/users/reset-password", resetPasswordHandler.Execute)
+	router.Post("/api/v1/users/auth", authenticateUserHandler.Execute)
 
 	// -------------------------------------------------------------------------
 	// Start the webserver
