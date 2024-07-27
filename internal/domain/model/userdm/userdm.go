@@ -85,3 +85,7 @@ func RestoreUser(
 
 	return user, nil
 }
+
+func (m *User) IsEnabled() bool {
+	return m.Status.String() == StatusConfirmed
+}

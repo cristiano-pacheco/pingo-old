@@ -38,6 +38,7 @@ import (
 	"github.com/cristiano-pacheco/pingo/internal/infra/service/tokensvc"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/golang-jwt/jwt/v5"
 	_ "github.com/lib/pq"
 
 	"github.com/go-mail/mail/v2"
@@ -127,7 +128,7 @@ func main() {
 
 	pemData, err := os.ReadFile(cfg.privateKeyPath)
 	if err != nil {
-		log.Fatalf("Error loading private key file", err)
+		log.Fatalf("error loading private key file: %s", err)
 	}
 
 	privateKey, err := privatekeydm.New(pemData)
@@ -182,7 +183,8 @@ func main() {
 	hashService := hashds.New()
 
 	defaultIssueName := "pingo"
-	tokenService := tokensvc.New(privateKey, defaultIssueName)
+	jwtParser := jwt.NewParser(jwt.WithValidMethods([]string{jwt.SigningMethodRS256.Name}))
+	tokenService := tokensvc.New(userRepository, privateKey, jwtParser, defaultIssueName)
 
 	// -------------------------------------------------------------------------
 	// Gateways Creation

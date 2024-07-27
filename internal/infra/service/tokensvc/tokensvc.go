@@ -1,20 +1,34 @@
 package tokensvc
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"strings"
 	"time"
 
+	"github.com/cristiano-pacheco/pingo/internal/application/repository/userrepo"
+	"github.com/cristiano-pacheco/pingo/internal/domain/model/authdm"
+	"github.com/cristiano-pacheco/pingo/internal/domain/model/identitydm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/privatekeydm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/userdm"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 type TokenService struct {
-	privateKey *privatekeydm.PrivateKey
-	issuerName string
+	userRepo userrepo.UserRepository
+	pk       *privatekeydm.PrivateKey
+	parser   *jwt.Parser
+	issuer   string
 }
 
-func New(privateKey *privatekeydm.PrivateKey, issuerName string) *TokenService {
-	return &TokenService{privateKey: privateKey, issuerName: issuerName}
+func New(
+	userRepo userrepo.UserRepository,
+	pk *privatekeydm.PrivateKey,
+	parser *jwt.Parser,
+	iss string,
+) *TokenService {
+	return &TokenService{userRepo: userRepo, pk: pk, parser: parser, issuer: iss}
 }
 
 func (s *TokenService) GenerateToken(user *userdm.User) (string, error) {
@@ -22,20 +36,67 @@ func (s *TokenService) GenerateToken(user *userdm.User) (string, error) {
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 		IssuedAt:  jwt.NewNumericDate(time.Now()),
 		NotBefore: jwt.NewNumericDate(time.Now()),
-		Issuer:    s.issuerName,
+		Issuer:    s.issuer,
 		Subject:   user.ID.String(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
-	result, err := token.SignedString(s.privateKey.Value())
+	signedToken, err := token.SignedString(s.pk.Value())
 	if err != nil {
 		return "", err
 	}
 
-	return result, nil
+	return signedToken, nil
 }
 
-func (s *TokenService) ValidateToken(token string) error {
+// ParseToken processes the token to validate the sender's token is valid.
+func (s *TokenService) ParseToken(ctx context.Context, bearerToken string) (*authdm.JWTClaims, error) {
+	if !strings.HasPrefix(bearerToken, "Bearer ") {
+		return nil, errors.New("expected authorization header format: Bearer <token>")
+	}
+
+	jwt := bearerToken[7:]
+
+	var claims authdm.JWTClaims
+	_, _, err := s.parser.ParseUnverified(jwt, &claims)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing token: %w", err)
+	}
+
+	input := map[string]any{
+		"Key":   s.pk.Value(),
+		"Token": jwt,
+		"ISS":   s.issuer,
+	}
+
+	if err := validateOpaPolicy(ctx, input); err != nil {
+		return nil, fmt.Errorf("authentication failed : %w", err)
+	}
+
+	// Check the database for this user to verify they are still enabled.
+	if err := s.isUserEnabled(&claims); err != nil {
+		return nil, fmt.Errorf("user not enabled : %w", err)
+	}
+
+	return &claims, nil
+}
+
+// isUserEnabled hits the database and checks the user is not disabled.
+func (s *TokenService) isUserEnabled(claims *authdm.JWTClaims) error {
+	userID, err := identitydm.Restore(claims.Subject)
+	if err != nil {
+		return fmt.Errorf("parse user: %w", err)
+	}
+
+	user, err := s.userRepo.FindByID(*userID)
+	if err != nil {
+		return fmt.Errorf("query user: %w", err)
+	}
+
+	if !user.IsEnabled() {
+		return fmt.Errorf("user disabled")
+	}
+
 	return nil
 }
