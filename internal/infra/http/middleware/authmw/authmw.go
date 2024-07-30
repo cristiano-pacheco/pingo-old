@@ -3,7 +3,6 @@ package authmw
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/cristiano-pacheco/pingo/internal/application/service/tokensvc"
@@ -27,7 +26,6 @@ func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 		bearerToken := r.Header.Get("Authorization")
 		claims, err := m.tokenService.ParseToken(r.Context(), bearerToken)
 		if err != nil {
-			fmt.Println(err)
 			response.UnauthorizedResponse(w, r)
 			return
 		}
