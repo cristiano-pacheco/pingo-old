@@ -1,16 +1,14 @@
 package pingo.rego
 
-default auth = false
+import rego.v1
 
-auth {
-	jwt_valid
+default auth := false
+
+auth if {
+	[valid, _, _] := verify_jwt
+	valid = true
 }
 
-jwt_valid := valid {
-	[valid, header, payload] := verify_jwt
-}
-
-verify_jwt := io.jwt.decode_verify(input.Token, {
-        "cert": input.Key,
-	}
-)
+verify_jwt := io.jwt.decode_verify(input.token, {
+	"cert": input.key
+})

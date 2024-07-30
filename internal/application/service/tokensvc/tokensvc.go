@@ -1,3 +1,4 @@
+// Package contains the TokenService contract.
 package tokensvc
 
 import (

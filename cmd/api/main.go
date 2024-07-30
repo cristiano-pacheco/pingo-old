@@ -22,7 +22,7 @@ import (
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/resetpassworduc"
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/sendresetpasswordemailuc"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/configdm"
-	"github.com/cristiano-pacheco/pingo/internal/domain/model/privatekeydm"
+	"github.com/cristiano-pacheco/pingo/internal/domain/model/keydm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/service/hashds"
 	"github.com/cristiano-pacheco/pingo/internal/infra/database/repository/userrepo"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/pinghandler"
@@ -31,6 +31,7 @@ import (
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/createuserhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/resetpasswordhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/sendresetpasswordemailhandler"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/middleware/authmw"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/middleware/loggermw"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/response"
 	"github.com/cristiano-pacheco/pingo/internal/infra/mailer/mailertemplate"
@@ -131,7 +132,7 @@ func main() {
 		log.Fatalf("error loading private key file: %s", err)
 	}
 
-	privateKey, err := privatekeydm.New(pemData)
+	key, err := keydm.New(pemData)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -184,7 +185,7 @@ func main() {
 
 	defaultIssueName := "pingo"
 	jwtParser := jwt.NewParser(jwt.WithValidMethods([]string{jwt.SigningMethodRS256.Name}))
-	tokenService := tokensvc.New(userRepository, privateKey, jwtParser, defaultIssueName)
+	tokenService := tokensvc.New(userRepository, key, jwtParser, defaultIssueName)
 
 	// -------------------------------------------------------------------------
 	// Gateways Creation
@@ -214,6 +215,11 @@ func main() {
 	authenticateUserHandler := authenticateuserhandler.New(authenticateUserUseCase)
 
 	// -------------------------------------------------------------------------
+	// Middlewares
+
+	authMiddleware := authmw.New(tokenService)
+
+	// -------------------------------------------------------------------------
 	// Routes registration
 
 	router := chi.NewRouter()
@@ -224,14 +230,19 @@ func main() {
 	router.NotFound(response.NotFoundResponse)
 	router.MethodNotAllowed(response.MethodNotAllowedResponse)
 
-	router.Get("/api/v1/ping", pingHandler.Execute)
-
+	// public endpoints
 	// user
 	router.Post("/api/v1/users", createUserHandler.Execute)
 	router.Post("/api/v1/users/activate", activateUserHandler.Execute)
 	router.Post("/api/v1/users/reset-password", sendResetPasswordEmailHandler.Execute)
 	router.Put("/api/v1/users/reset-password", resetPasswordHandler.Execute)
 	router.Post("/api/v1/users/auth", authenticateUserHandler.Execute)
+
+	// protected endpoints
+	router.Group(func(r chi.Router) {
+		r.Use(authMiddleware.Authenticate)
+		r.Get("/api/v1/ping", pingHandler.Execute)
+	})
 
 	// -------------------------------------------------------------------------
 	// Start the webserver

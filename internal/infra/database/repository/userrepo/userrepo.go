@@ -108,7 +108,7 @@ func (r *UserRepository) ActivateAccount(user userdm.User) error {
 	query := `UPDATE users set account_confirmation_token = null, status = $1 where id = $2`
 
 	args := []any{
-		userdm.StatusConfirmed,
+		userdm.StatusActivated,
 		user.ID.String(),
 	}
 

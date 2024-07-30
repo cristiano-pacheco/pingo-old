@@ -53,15 +53,9 @@ func InvalidCredentialsResponse(w http.ResponseWriter, r *http.Request) {
 	ErrorResponse(w, r, http.StatusUnprocessableEntity, message)
 }
 
-func InvalidAuthenticationTokenResponse(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("WWW-Authenticate", "Bearer")
-	message := "invalid or missing authentication token"
-	ErrorResponse(w, r, http.StatusUnprocessableEntity, message)
-}
-
-func AuthenticationRequiredResponse(w http.ResponseWriter, r *http.Request) {
+func UnauthorizedResponse(w http.ResponseWriter, r *http.Request) {
 	message := "you must be authenticated to access this resource"
-	ErrorResponse(w, r, http.StatusUnprocessableEntity, message)
+	ErrorResponse(w, r, http.StatusUnauthorized, message)
 }
 
 func ErrorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
@@ -100,7 +94,7 @@ func EmptyResponse(w http.ResponseWriter) {
 func LogError(r *http.Request, err error) {
 	method := r.Method
 	uri := r.URL.RequestURI()
-	logger := r.Context().Value(loggermw.NewLoggerKeyContext()).(*slog.Logger)
+	logger := r.Context().Value(loggermw.LoggerContextKey).(*slog.Logger)
 
 	logger.Error(err.Error(), "method", method, "uri", uri)
 }

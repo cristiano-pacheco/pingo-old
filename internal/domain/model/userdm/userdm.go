@@ -66,7 +66,7 @@ func RestoreUser(
 		return nil, err
 	}
 
-	statusVo, err := NewStatus(StatusPending)
+	statusVo, err := NewStatus(status)
 	if err != nil {
 		return nil, err
 	}
@@ -86,6 +86,6 @@ func RestoreUser(
 	return user, nil
 }
 
-func (m *User) IsEnabled() bool {
-	return m.Status.String() == StatusConfirmed
+func (m *User) IsActivated() bool {
+	return m.Status.String() == StatusActivated
 }

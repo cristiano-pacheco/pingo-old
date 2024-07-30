@@ -10,25 +10,25 @@ import (
 	"github.com/cristiano-pacheco/pingo/internal/application/repository/userrepo"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/authdm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/identitydm"
-	"github.com/cristiano-pacheco/pingo/internal/domain/model/privatekeydm"
+	"github.com/cristiano-pacheco/pingo/internal/domain/model/keydm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/userdm"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 type TokenService struct {
 	userRepo userrepo.UserRepository
-	pk       *privatekeydm.PrivateKey
+	key      *keydm.Key
 	parser   *jwt.Parser
 	issuer   string
 }
 
 func New(
 	userRepo userrepo.UserRepository,
-	pk *privatekeydm.PrivateKey,
+	key *keydm.Key,
 	parser *jwt.Parser,
 	iss string,
 ) *TokenService {
-	return &TokenService{userRepo: userRepo, pk: pk, parser: parser, issuer: iss}
+	return &TokenService{userRepo: userRepo, key: key, parser: parser, issuer: iss}
 }
 
 func (s *TokenService) GenerateToken(user *userdm.User) (string, error) {
@@ -40,9 +40,10 @@ func (s *TokenService) GenerateToken(user *userdm.User) (string, error) {
 		Subject:   user.ID.String(),
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	method := jwt.GetSigningMethod(jwt.SigningMethodRS256.Name)
+	token := jwt.NewWithClaims(method, claims)
 
-	signedToken, err := token.SignedString(s.pk.Value())
+	signedToken, err := token.SignedString(s.key.PrivateRSA())
 	if err != nil {
 		return "", err
 	}
@@ -56,7 +57,7 @@ func (s *TokenService) ParseToken(ctx context.Context, bearerToken string) (*aut
 		return nil, errors.New("expected authorization header format: Bearer <token>")
 	}
 
-	jwt := bearerToken[7:]
+	jwt := strings.TrimSpace(bearerToken[7:])
 
 	var claims authdm.JWTClaims
 	_, _, err := s.parser.ParseUnverified(jwt, &claims)
@@ -65,17 +66,17 @@ func (s *TokenService) ParseToken(ctx context.Context, bearerToken string) (*aut
 	}
 
 	input := map[string]any{
-		"Key":   s.pk.Value(),
-		"Token": jwt,
-		"ISS":   s.issuer,
+		"key":   s.key.PublicKey(),
+		"token": jwt,
 	}
 
-	if err := validateOpaPolicy(ctx, input); err != nil {
+	err = validateOpaPolicy(ctx, input)
+	if err != nil {
 		return nil, fmt.Errorf("authentication failed : %w", err)
 	}
 
 	// Check the database for this user to verify they are still enabled.
-	if err := s.isUserEnabled(&claims); err != nil {
+	if err := s.isUserActivated(&claims); err != nil {
 		return nil, fmt.Errorf("user not enabled : %w", err)
 	}
 
@@ -83,7 +84,7 @@ func (s *TokenService) ParseToken(ctx context.Context, bearerToken string) (*aut
 }
 
 // isUserEnabled hits the database and checks the user is not disabled.
-func (s *TokenService) isUserEnabled(claims *authdm.JWTClaims) error {
+func (s *TokenService) isUserActivated(claims *authdm.JWTClaims) error {
 	userID, err := identitydm.Restore(claims.Subject)
 	if err != nil {
 		return fmt.Errorf("parse user: %w", err)
@@ -94,7 +95,7 @@ func (s *TokenService) isUserEnabled(claims *authdm.JWTClaims) error {
 		return fmt.Errorf("query user: %w", err)
 	}
 
-	if !user.IsEnabled() {
+	if !user.IsActivated() {
 		return fmt.Errorf("user disabled")
 	}
 

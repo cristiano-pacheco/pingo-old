@@ -7,19 +7,15 @@ import (
 	"net/http"
 )
 
-type LoggerContextKey string
+type contextKey string
 
-const key = "logger"
+const LoggerContextKey = contextKey("logger")
 
 func AddLoggerToContextMiddleware(logger *slog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := context.WithValue(r.Context(), LoggerContextKey(key), logger)
+			ctx := context.WithValue(r.Context(), LoggerContextKey, logger)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
-}
-
-func NewLoggerKeyContext() LoggerContextKey {
-	return LoggerContextKey(key)
 }
