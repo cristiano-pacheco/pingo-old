@@ -1,3 +1,4 @@
+// Package tokensvc contains the service that handles the authentication.
 package tokensvc
 
 import (

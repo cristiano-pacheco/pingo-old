@@ -1,3 +1,4 @@
+// Package authmw contains the middleware to handle the authentication via token.
 package authmw
 
 import (

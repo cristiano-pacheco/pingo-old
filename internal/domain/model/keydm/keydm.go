@@ -1,3 +1,4 @@
+// Package keydm contains the value object to carry the hash key values.
 package keydm
 
 import (

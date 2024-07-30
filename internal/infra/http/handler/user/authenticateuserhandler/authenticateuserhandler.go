@@ -1,3 +1,4 @@
+// Package authenticateuserhandler provides a handler to authenticate the user.
 package authenticateuserhandler
 
 import (

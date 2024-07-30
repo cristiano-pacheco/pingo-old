@@ -1,3 +1,4 @@
+// Package authenticateuseruc contains the use case to authenticate the user.
 package authenticateuseruc
 
 import (
