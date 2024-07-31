@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/cristiano-pacheco/pingo/internal/infra/http/middleware/loggermw"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/request"
 	"github.com/cristiano-pacheco/pingo/internal/infra/validator"
 )
 
@@ -94,7 +94,7 @@ func EmptyResponse(w http.ResponseWriter) {
 func LogError(r *http.Request, err error) {
 	method := r.Method
 	uri := r.URL.RequestURI()
-	logger := r.Context().Value(loggermw.LoggerContextKey).(*slog.Logger)
+	logger := r.Context().Value(request.LoggerContextKey).(*slog.Logger)
 
 	logger.Error(err.Error(), "method", method, "uri", uri)
 }

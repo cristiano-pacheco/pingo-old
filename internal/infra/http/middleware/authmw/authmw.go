@@ -6,12 +6,9 @@ import (
 	"net/http"
 
 	"github.com/cristiano-pacheco/pingo/internal/application/service/tokensvc"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/request"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/response"
 )
-
-type contextKey string
-
-const UserIDContextKey = contextKey("userID")
 
 type AuthMiddleware struct {
 	tokenService tokensvc.TokenService
@@ -29,7 +26,7 @@ func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 			response.UnauthorizedResponse(w, r)
 			return
 		}
-		ctx := context.WithValue(r.Context(), UserIDContextKey, claims.Subject)
+		ctx := context.WithValue(r.Context(), request.UserIDContextKey, claims.Subject)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

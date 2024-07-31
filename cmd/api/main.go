@@ -21,6 +21,7 @@ import (
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/createuseruc"
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/resetpassworduc"
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/sendresetpasswordemailuc"
+	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/updatepassworduc"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/configdm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/keydm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/service/hashds"
@@ -31,6 +32,7 @@ import (
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/createuserhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/resetpasswordhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/sendresetpasswordemailhandler"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/updatepasswordhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/middleware/authmw"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/middleware/loggermw"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/response"
@@ -203,6 +205,7 @@ func main() {
 	resetPasswordUseCase := resetpassworduc.New(userRepository, hashService)
 	activateUserUseCase := activateuseruc.New(userRepository)
 	authenticateUserUseCase := authenticateuseruc.New(tokenService, userRepository, *hashService)
+	updatePasswordUseCase := updatepassworduc.New(userRepository, *hashService)
 
 	// -------------------------------------------------------------------------
 	// Handlers Creation
@@ -213,6 +216,7 @@ func main() {
 	sendResetPasswordEmailHandler := sendresetpasswordemailhandler.New(sendResetPasswordEmailUseCase)
 	resetPasswordHandler := resetpasswordhandler.New(resetPasswordUseCase)
 	authenticateUserHandler := authenticateuserhandler.New(authenticateUserUseCase)
+	updatePasswordHandler := updatepasswordhandler.New(updatePasswordUseCase)
 
 	// -------------------------------------------------------------------------
 	// Middlewares
@@ -231,17 +235,21 @@ func main() {
 	router.MethodNotAllowed(response.MethodNotAllowedResponse)
 
 	// public endpoints
-	// user
-	router.Post("/api/v1/users", createUserHandler.Execute)
-	router.Post("/api/v1/users/activate", activateUserHandler.Execute)
-	router.Post("/api/v1/users/reset-password", sendResetPasswordEmailHandler.Execute)
-	router.Put("/api/v1/users/reset-password", resetPasswordHandler.Execute)
-	router.Post("/api/v1/users/auth", authenticateUserHandler.Execute)
+	router.Group(func(r chi.Router) {
+		// user
+		router.Post("/api/v1/users", createUserHandler.Execute)
+		router.Post("/api/v1/users/activate", activateUserHandler.Execute)
+		router.Post("/api/v1/users/reset-password", sendResetPasswordEmailHandler.Execute)
+		router.Put("/api/v1/users/reset-password", resetPasswordHandler.Execute)
+		router.Post("/api/v1/users/auth", authenticateUserHandler.Execute)
+	})
 
 	// protected endpoints
 	router.Group(func(r chi.Router) {
 		r.Use(authMiddleware.Authenticate)
 		r.Get("/api/v1/ping", pingHandler.Execute)
+
+		r.Put("/api/v1/users/password", updatePasswordHandler.Execute)
 	})
 
 	// -------------------------------------------------------------------------

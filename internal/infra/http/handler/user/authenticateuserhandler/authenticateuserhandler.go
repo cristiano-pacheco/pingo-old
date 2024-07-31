@@ -2,11 +2,13 @@
 package authenticateuserhandler
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/authenticateuseruc"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/request"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/response"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Handler struct {
@@ -34,8 +36,12 @@ func (h *Handler) Execute(w http.ResponseWriter, r *http.Request) {
 	useCaseInput := &authenticateuseruc.Input{Email: in.Email, Password: in.Password}
 	useCaseOutput, err := h.usecase.Execute(useCaseInput)
 
-	// handle invalid credentials and return the http status 401 instead
 	if err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			data := &response.Envelope{"error": "invalid credentials"}
+			response.JSONResponse(w, http.StatusUnauthorized, *data, nil)
+			return
+		}
 		response.ServerErrorResponse(w, r, err)
 		return
 	}
