@@ -57,9 +57,5 @@ func (h *Handler) Execute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = response.JSONResponse(w, http.StatusOK, nil, nil)
-	if err != nil {
-		response.ServerErrorResponse(w, r, err)
-		return
-	}
+	response.EmptyOKResponse(w)
 }

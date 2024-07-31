@@ -87,7 +87,11 @@ func JSONResponse(w http.ResponseWriter, status int, data Envelope, headers http
 	return nil
 }
 
-func EmptyResponse(w http.ResponseWriter) {
+func EmptyOKResponse(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusOK)
+}
+
+func NoContentResponse(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusNoContent)
 }
 

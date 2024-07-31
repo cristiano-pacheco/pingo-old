@@ -46,7 +46,7 @@ func (r *UserRepository) Create(user userdm.User) error {
 }
 
 func (r *UserRepository) Update(user userdm.User) error {
-	query := `UPDATE users set name = $1, email = $2, status = $3 where id = $4`
+	query := `UPDATE users set name = $1, email = $2, status = $3, updated_at = now() where id = $4`
 
 	args := []any{
 		user.Name.String(),
@@ -67,7 +67,7 @@ func (r *UserRepository) Update(user userdm.User) error {
 }
 
 func (r *UserRepository) UpdatePassword(user userdm.User) error {
-	query := `UPDATE users set password_hash = $1, reset_password_token = null where id = $2`
+	query := `UPDATE users set password_hash = $1, reset_password_token = null, updated_at = now() where id = $2`
 
 	args := []any{
 		user.PasswordHash,
@@ -86,7 +86,7 @@ func (r *UserRepository) UpdatePassword(user userdm.User) error {
 }
 
 func (r *UserRepository) UpdateResetPasswordToken(user userdm.User) error {
-	query := `UPDATE users set reset_password_token = $1 where id = $2`
+	query := `UPDATE users set reset_password_token = $1, updated_at = now() where id = $2`
 
 	args := []any{
 		user.ResetPasswordToken,
@@ -105,7 +105,7 @@ func (r *UserRepository) UpdateResetPasswordToken(user userdm.User) error {
 }
 
 func (r *UserRepository) ActivateAccount(user userdm.User) error {
-	query := `UPDATE users set account_confirmation_token = null, status = $1 where id = $2`
+	query := `UPDATE users set account_confirmation_token = null, status = $1, updated_at = now() where id = $2`
 
 	args := []any{
 		userdm.StatusActivated,

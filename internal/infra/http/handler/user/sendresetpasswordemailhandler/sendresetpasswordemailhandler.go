@@ -39,5 +39,5 @@ func (h *Handler) Execute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.EmptyResponse(w)
+	response.EmptyOKResponse(w)
 }

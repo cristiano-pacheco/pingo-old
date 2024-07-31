@@ -22,6 +22,7 @@ import (
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/resetpassworduc"
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/sendresetpasswordemailuc"
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/updatepassworduc"
+	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/updateuseruc"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/configdm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/keydm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/service/hashds"
@@ -33,6 +34,7 @@ import (
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/resetpasswordhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/sendresetpasswordemailhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/updatepasswordhandler"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/updateuserhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/middleware/authmw"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/middleware/loggermw"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/response"
@@ -206,6 +208,7 @@ func main() {
 	activateUserUseCase := activateuseruc.New(userRepository)
 	authenticateUserUseCase := authenticateuseruc.New(tokenService, userRepository, *hashService)
 	updatePasswordUseCase := updatepassworduc.New(userRepository, *hashService)
+	updateUserUseCase := updateuseruc.New(userRepository)
 
 	// -------------------------------------------------------------------------
 	// Handlers Creation
@@ -217,6 +220,7 @@ func main() {
 	resetPasswordHandler := resetpasswordhandler.New(resetPasswordUseCase)
 	authenticateUserHandler := authenticateuserhandler.New(authenticateUserUseCase)
 	updatePasswordHandler := updatepasswordhandler.New(updatePasswordUseCase)
+	updateUserHandler := updateuserhandler.New(updateUserUseCase)
 
 	// -------------------------------------------------------------------------
 	// Middlewares
@@ -250,6 +254,7 @@ func main() {
 		r.Get("/api/v1/ping", pingHandler.Execute)
 
 		r.Put("/api/v1/users/password", updatePasswordHandler.Execute)
+		r.Put("/api/v1/users", updateUserHandler.Execute)
 	})
 
 	// -------------------------------------------------------------------------
