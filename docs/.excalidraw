@@ -5,8 +5,8 @@
   "elements": [
     {
       "type": "text",
-      "version": 578,
-      "versionNonce": 1684414589,
+      "version": 666,
+      "versionNonce": 148725044,
       "isDeleted": false,
       "id": "3ZA5nrmoq9VDbgLweiyK2",
       "fillStyle": "hachure",
@@ -20,21 +20,21 @@
       "strokeColor": "#000000",
       "backgroundColor": "transparent",
       "width": 258.9797668457031,
-      "height": 1008,
+      "height": 1176,
       "seed": 1082753045,
       "groupIds": [],
       "roundness": null,
       "boundElements": [],
-      "updated": 1721841413842,
+      "updated": 1722446544099,
       "link": null,
       "locked": false,
       "fontSize": 20,
       "fontFamily": 1,
-      "text": "USE-CASES\n\nUSER\n- createUser\n  - name\n  - email\n  - password\n- updateUser\n  - name\n- findUserById\n  - id\n- updateUserPassword\n  - password\n- sendResetPasswordEmail\n  - email\n- resetPassword\n  - id\n  - token\n  - password\n- authenticateUser\n  - email\n  - password\n- confirmUserAccount\n  - id (user-id)\n  - accountConfToken\n\n\nCONTACT\n- createContact\n- updateContact\n- findContactList\n- deleteContact\n\n\nMONITOR\n- createMonitor\n- updateMonitor\n- findMonitorList\n- findMonitorById\n- deleteMonitor\n\n",
+      "text": "USE-CASES\n\nUSER\n- createUser\n  - name\n  - email\n  - password\n- updateUser\n  - name\n- findUserById\n  - id\n- updateUserPassword\n  - password\n- sendResetPasswordEmail\n  - email\n- resetPassword\n  - id\n  - token\n  - password\n- authenticateUser\n  - email\n  - password\n- confirmUserAccount\n  - id (user-id)\n  - accountConfToken\n\n\nCONTACT\n- createContact\n  - user_id\n  - name\n  - contact_type\n  - contact_data\n  - created_at\n  - updated_at\n\n- updateContact\n- findContactList\n- deleteContact\n\n\nMONITOR\n- createMonitor\n- updateMonitor\n- findMonitorList\n- findMonitorById\n- deleteMonitor\n\n",
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "USE-CASES\n\nUSER\n- createUser\n  - name\n  - email\n  - password\n- updateUser\n  - name\n- findUserById\n  - id\n- updateUserPassword\n  - password\n- sendResetPasswordEmail\n  - email\n- resetPassword\n  - id\n  - token\n  - password\n- authenticateUser\n  - email\n  - password\n- confirmUserAccount\n  - id (user-id)\n  - accountConfToken\n\n\nCONTACT\n- createContact\n- updateContact\n- findContactList\n- deleteContact\n\n\nMONITOR\n- createMonitor\n- updateMonitor\n- findMonitorList\n- findMonitorById\n- deleteMonitor\n\n"
+      "originalText": "USE-CASES\n\nUSER\n- createUser\n  - name\n  - email\n  - password\n- updateUser\n  - name\n- findUserById\n  - id\n- updateUserPassword\n  - password\n- sendResetPasswordEmail\n  - email\n- resetPassword\n  - id\n  - token\n  - password\n- authenticateUser\n  - email\n  - password\n- confirmUserAccount\n  - id (user-id)\n  - accountConfToken\n\n\nCONTACT\n- createContact\n  - user_id\n  - name\n  - contact_type\n  - contact_data\n  - created_at\n  - updated_at\n\n- updateContact\n- findContactList\n- deleteContact\n\n\nMONITOR\n- createMonitor\n- updateMonitor\n- findMonitorList\n- findMonitorById\n- deleteMonitor\n\n"
     },
     {
       "type": "text",

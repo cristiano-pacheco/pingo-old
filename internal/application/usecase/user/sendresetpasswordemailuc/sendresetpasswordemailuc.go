@@ -6,7 +6,7 @@ import (
 	"github.com/cristiano-pacheco/pingo/internal/application/gateway/mailertemplategw"
 	"github.com/cristiano-pacheco/pingo/internal/application/repository/userrepo"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/configdm"
-	"github.com/cristiano-pacheco/pingo/internal/domain/model/userdm"
+	"github.com/cristiano-pacheco/pingo/internal/domain/model/emaildm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/service/hashds"
 )
 
@@ -36,7 +36,7 @@ func New(
 
 func (uc *UseCase) Execute(input *Input) error {
 	// Search the user by email
-	email, err := userdm.NewEmail(input.Email)
+	email, err := emaildm.New(input.Email)
 	if err != nil {
 		return err
 	}

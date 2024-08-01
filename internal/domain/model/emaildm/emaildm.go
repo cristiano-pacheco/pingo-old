@@ -1,4 +1,5 @@
-package userdm
+// Package emaildm contains the email domain model.
+package emaildm
 
 import (
 	"net/mail"
@@ -9,7 +10,7 @@ type Email struct {
 	value string
 }
 
-func NewEmail(value string) (*Email, error) {
+func New(value string) (*Email, error) {
 	v, err := mail.ParseAddress(value)
 	if err != nil {
 		return nil, err

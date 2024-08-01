@@ -26,6 +26,7 @@ import (
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/configdm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/keydm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/service/hashds"
+	"github.com/cristiano-pacheco/pingo/internal/infra/database/repository/contactrepo"
 	"github.com/cristiano-pacheco/pingo/internal/infra/database/repository/userrepo"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/pinghandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/activateuserhandler"
@@ -181,6 +182,7 @@ func main() {
 	// Repository Creation
 
 	userRepository := userrepo.New(db)
+	contactRepository := contactrepo.New(db)
 
 	// -------------------------------------------------------------------------
 	// Service Creation

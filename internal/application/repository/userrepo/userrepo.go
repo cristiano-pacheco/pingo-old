@@ -2,6 +2,7 @@
 package userrepo
 
 import (
+	"github.com/cristiano-pacheco/pingo/internal/domain/model/emaildm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/identitydm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/userdm"
 )
@@ -14,5 +15,5 @@ type UserRepository interface {
 	UpdateResetPasswordToken(user userdm.User) error
 	ActivateAccount(user userdm.User) error
 	FindByID(id identitydm.ID) (*userdm.User, error)
-	FindByEmail(email userdm.Email) (*userdm.User, error)
+	FindByEmail(email emaildm.Email) (*userdm.User, error)
 }

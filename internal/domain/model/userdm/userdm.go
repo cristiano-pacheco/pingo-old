@@ -4,13 +4,14 @@ package userdm
 import (
 	"time"
 
+	"github.com/cristiano-pacheco/pingo/internal/domain/model/emaildm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/identitydm"
 )
 
 type User struct {
 	ID                       identitydm.ID
 	Name                     Name
-	Email                    Email
+	Email                    emaildm.Email
 	PasswordHash             []byte
 	Status                   Status
 	ResetPasswordToken       []byte
@@ -25,7 +26,7 @@ func NewUser(name, email string, passwordHash, accountConfToken []byte) (*User, 
 		return nil, err
 	}
 
-	emailVo, err := NewEmail(email)
+	emailVo, err := emaildm.New(email)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +62,7 @@ func RestoreUser(
 		return nil, err
 	}
 
-	emailVo, err := NewEmail(email)
+	emailVo, err := emaildm.New(email)
 	if err != nil {
 		return nil, err
 	}

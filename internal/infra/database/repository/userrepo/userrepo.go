@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cristiano-pacheco/pingo/internal/domain/model/emaildm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/identitydm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/model/userdm"
 )
@@ -181,7 +182,7 @@ func (r *UserRepository) FindByID(id identitydm.ID) (*userdm.User, error) {
 	return user, nil
 }
 
-func (r *UserRepository) FindByEmail(email userdm.Email) (*userdm.User, error) {
+func (r *UserRepository) FindByEmail(email emaildm.Email) (*userdm.User, error) {
 	query := `
 		select id, name, email, password_hash, status, account_confirmation_token, reset_password_token, created_at, updated_at
 		from users where email = $1

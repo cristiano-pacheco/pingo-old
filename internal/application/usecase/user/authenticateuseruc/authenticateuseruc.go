@@ -4,7 +4,7 @@ package authenticateuseruc
 import (
 	"github.com/cristiano-pacheco/pingo/internal/application/repository/userrepo"
 	"github.com/cristiano-pacheco/pingo/internal/application/service/tokensvc"
-	"github.com/cristiano-pacheco/pingo/internal/domain/model/userdm"
+	"github.com/cristiano-pacheco/pingo/internal/domain/model/emaildm"
 	"github.com/cristiano-pacheco/pingo/internal/domain/service/hashds"
 )
 
@@ -27,7 +27,7 @@ func New(
 }
 
 func (uc *UseCase) Execute(in *Input) (*Output, error) {
-	emailVo, err := userdm.NewEmail(in.Email)
+	emailVo, err := emaildm.New(in.Email)
 	if err != nil {
 		return nil, err
 	}
