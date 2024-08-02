@@ -9,6 +9,7 @@ import (
 
 var (
 	EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+	PhoneRX = regexp.MustCompile(`^\+\d{1,3}\d{7,14}$`)
 )
 
 var (
@@ -17,6 +18,7 @@ var (
 	MaxCharsMessage     = "must not be more than %d characters long"
 	MaxMaxCharsMessage  = "must be between %d and %d characters"
 	InvalidEmailMessage = "must be a valid email address"
+	PermittedValues     = "must be a permitted value"
 )
 
 // Validator type which contains a map of validation errors for our form fields.
@@ -97,4 +99,13 @@ func PermittedInt(value int, permittedValues ...int) bool {
 
 func Matches(value string, rx *regexp.Regexp) bool {
 	return rx.MatchString(value)
+}
+
+func PermittedValue[T comparable](value T, permittedValues ...T) bool {
+	for i := range permittedValues {
+		if value == permittedValues[i] {
+			return true
+		}
+	}
+	return false
 }

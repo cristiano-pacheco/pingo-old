@@ -16,6 +16,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/cristiano-pacheco/pingo/internal/application/usecase/contact/createcontactuc"
+	"github.com/cristiano-pacheco/pingo/internal/application/usecase/contact/deletecontactuc"
+	"github.com/cristiano-pacheco/pingo/internal/application/usecase/contact/findcontactlistuc"
+	"github.com/cristiano-pacheco/pingo/internal/application/usecase/contact/updatecontactuc"
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/activateuseruc"
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/authenticateuseruc"
 	"github.com/cristiano-pacheco/pingo/internal/application/usecase/user/createuseruc"
@@ -28,6 +32,10 @@ import (
 	"github.com/cristiano-pacheco/pingo/internal/domain/service/hashds"
 	"github.com/cristiano-pacheco/pingo/internal/infra/database/repository/contactrepo"
 	"github.com/cristiano-pacheco/pingo/internal/infra/database/repository/userrepo"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/contact/createcontacthandler"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/contact/deletecontacthandler"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/contact/findcontactlisthandler"
+	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/contact/updatecontacthandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/pinghandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/activateuserhandler"
 	"github.com/cristiano-pacheco/pingo/internal/infra/http/handler/user/authenticateuserhandler"
@@ -203,6 +211,7 @@ func main() {
 	// -------------------------------------------------------------------------
 	// UseCases Creation
 
+	// user
 	createUserMapper := createuseruc.NewMapper(hashService)
 	createUserUseCase := createuseruc.New(userRepository, smtpMailerGW, mailerTemplate, configVo, createUserMapper)
 	sendResetPasswordEmailUseCase := sendresetpasswordemailuc.New(userRepository, smtpMailerGW, mailerTemplate, hashService, configVo)
@@ -212,10 +221,18 @@ func main() {
 	updatePasswordUseCase := updatepassworduc.New(userRepository, *hashService)
 	updateUserUseCase := updateuseruc.New(userRepository)
 
+	// contact
+	createContactUseCase := createcontactuc.New(contactRepository)
+	updateContactUseCase := updatecontactuc.New(contactRepository)
+	deleteContactUseCase := deletecontactuc.New(contactRepository)
+	findContactListUseCase := findcontactlistuc.New(contactRepository)
+
 	// -------------------------------------------------------------------------
 	// Handlers Creation
 
 	pingHandler := pinghandler.New()
+
+	// user
 	createUserHandler := createuserhandler.New(createUserUseCase)
 	activateUserHandler := activateuserhandler.New(activateUserUseCase)
 	sendResetPasswordEmailHandler := sendresetpasswordemailhandler.New(sendResetPasswordEmailUseCase)
@@ -223,6 +240,12 @@ func main() {
 	authenticateUserHandler := authenticateuserhandler.New(authenticateUserUseCase)
 	updatePasswordHandler := updatepasswordhandler.New(updatePasswordUseCase)
 	updateUserHandler := updateuserhandler.New(updateUserUseCase)
+
+	// contact
+	createContactHandler := createcontacthandler.New(createContactUseCase)
+	updateContactHandler := updatecontacthandler.New(updateContactUseCase)
+	deleteContactHandler := deletecontacthandler.New(deleteContactUseCase)
+	findContactListHandler := findcontactlisthandler.New(findContactListUseCase)
 
 	// -------------------------------------------------------------------------
 	// Middlewares
@@ -255,8 +278,15 @@ func main() {
 		r.Use(authMiddleware.Authenticate)
 		r.Get("/api/v1/ping", pingHandler.Execute)
 
+		// users
 		r.Put("/api/v1/users/password", updatePasswordHandler.Execute)
 		r.Put("/api/v1/users", updateUserHandler.Execute)
+
+		// contacts
+		r.Get("/api/v1/contacts", findContactListHandler.Execute)
+		r.Post("/api/v1/contacts", createContactHandler.Execute)
+		r.Put("/api/v1/contacts/{contactId}", updateContactHandler.Execute)
+		r.Delete("/api/v1/contacts/{contactId}", deleteContactHandler.Execute)
 	})
 
 	// -------------------------------------------------------------------------

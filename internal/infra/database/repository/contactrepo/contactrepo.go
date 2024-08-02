@@ -98,7 +98,7 @@ func (r *ContactRepository) FindByIDAndUserID(id, userID identitydm.ID) (*contac
 
 	var contactdb ContactDB
 
-	err := r.db.QueryRowContext(ctx, query, id.String()).Scan(
+	err := r.db.QueryRowContext(ctx, query, id.String(), userID.String()).Scan(
 		&contactdb.ID,
 		&contactdb.UserID,
 		&contactdb.Name,

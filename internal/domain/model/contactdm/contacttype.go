@@ -18,8 +18,12 @@ func NewContactType(value string) (*ContactType, error) {
 	return &ContactType{value: value}, nil
 }
 
-func (s ContactType) String() string {
+func (s *ContactType) String() string {
 	return s.value
+}
+
+func Values() []string {
+	return []string{TypeEmail, TypeSMS, TypeSlack}
 }
 
 func validateContactType(value string) error {

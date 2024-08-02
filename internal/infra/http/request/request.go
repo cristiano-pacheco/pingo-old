@@ -16,6 +16,10 @@ func GetParam(r *http.Request, param string) string {
 	return chi.URLParam(r, param)
 }
 
+func GetUserIdFromContext(r *http.Request) string {
+	return r.Context().Value(UserIDContextKey).(string)
+}
+
 func ReadJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 	maxBytes := 1_048_576
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))

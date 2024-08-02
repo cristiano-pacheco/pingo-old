@@ -7,9 +7,9 @@ import (
 )
 
 type ContactRepository interface {
-	Create(user contactdm.Contact) error
-	Update(user contactdm.Contact) error
-	Delete(user contactdm.Contact) error
-	FindByID(id identitydm.ID) (*contactdm.Contact, error)
-	FindListByUserID(userID identitydm.ID) []*contactdm.Contact
+	Create(contact contactdm.Contact) error
+	Update(contact contactdm.Contact) error
+	Delete(contact contactdm.Contact) error
+	FindByIDAndUserID(id, userID identitydm.ID) (*contactdm.Contact, error)
+	FindListByUserID(userID identitydm.ID) ([]*contactdm.Contact, error)
 }
