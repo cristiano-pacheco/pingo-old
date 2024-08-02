@@ -14,7 +14,7 @@ func mapToUseCaseInput(in input, r *http.Request) *updatecontactuc.Input {
 		ContactValue: in.ContactValue,
 		IsEnabled:    in.IsEnabled,
 	}
-	input.UserID = request.GetUserIdFromContext(r)
+	input.UserID = request.GetUserIDFromContext(r)
 	input.ID = request.GetParam(r, "contactId")
 	return &input
 }

@@ -1,3 +1,4 @@
+// Package phonedm contains phone domain model.
 package phonedm
 
 import (

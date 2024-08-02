@@ -1,3 +1,4 @@
+// Package contactdm contains contact domain model.
 package contactdm
 
 import (

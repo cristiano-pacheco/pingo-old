@@ -20,7 +20,7 @@ func New(useCase *deletecontactuc.UseCase) *Handler {
 func (h *Handler) Execute(w http.ResponseWriter, r *http.Request) {
 	useCaseInput := deletecontactuc.Input{
 		ID:     request.GetParam(r, "contactId"),
-		UserID: request.GetUserIdFromContext(r),
+		UserID: request.GetUserIDFromContext(r),
 	}
 
 	err := h.deleteContactUseCase.Execute(&useCaseInput)

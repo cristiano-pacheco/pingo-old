@@ -1,3 +1,4 @@
+// Package findcontactlistuc contains the use case to find a contact list.
 package findcontactlistuc
 
 import (

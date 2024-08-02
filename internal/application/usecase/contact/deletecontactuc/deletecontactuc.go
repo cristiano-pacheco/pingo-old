@@ -1,3 +1,4 @@
+// Package deletecontactuc contains the use case to delete a contact.
 package deletecontactuc
 
 import (

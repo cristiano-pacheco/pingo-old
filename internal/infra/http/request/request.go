@@ -16,7 +16,7 @@ func GetParam(r *http.Request, param string) string {
 	return chi.URLParam(r, param)
 }
 
-func GetUserIdFromContext(r *http.Request) string {
+func GetUserIDFromContext(r *http.Request) string {
 	return r.Context().Value(UserIDContextKey).(string)
 }
 

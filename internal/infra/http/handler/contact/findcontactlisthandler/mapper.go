@@ -9,7 +9,7 @@ import (
 
 func mapToUseCaseInput(r *http.Request) *findcontactlistuc.Input {
 	input := findcontactlistuc.Input{
-		UserID: request.GetUserIdFromContext(r),
+		UserID: request.GetUserIDFromContext(r),
 	}
 	return &input
 }
