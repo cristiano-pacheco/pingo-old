@@ -184,7 +184,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	m.Up()
+	err = m.Up()
+	if err != nil {
+		logger.Error(fmt.Errorf("error during migration up: %s", err.Error()).Error())
+		os.Exit(1)
+	}
 
 	// -------------------------------------------------------------------------
 	// Repository Creation
